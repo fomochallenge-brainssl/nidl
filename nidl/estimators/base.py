@@ -28,6 +28,8 @@ from torchmetrics import MetricCollection
 
 from ..utils.validation import _estimator_is, available_if, check_is_fitted
 
+from pathlib import Path
+
 
 class BaseEstimator(pl.LightningModule):
     """Base class for all estimators in the NIDL framework designed for
@@ -210,6 +212,7 @@ class BaseEstimator(pl.LightningModule):
         self,
         train_dataloader: data.DataLoader,
         val_dataloader: Optional[data.DataLoader] = None,
+        ckpt_path: Union[str, Path, None] = None
     ):
         """The `fit` method.
 
@@ -236,7 +239,7 @@ class BaseEstimator(pl.LightningModule):
         if trainer.logger is not None:
             trainer.logger._default_hp_metric = None
         pl.seed_everything(self.hparams.random_state)
-        trainer.fit(self, train_dataloader, val_dataloader)
+        trainer.fit(self, train_dataloader, val_dataloader, None, ckpt_path)
         self.fitted_ = True
         return self
 
