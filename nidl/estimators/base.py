@@ -239,7 +239,8 @@ class BaseEstimator(pl.LightningModule):
         if trainer.logger is not None:
             trainer.logger._default_hp_metric = None
         pl.seed_everything(self.hparams.random_state)
-        trainer.fit(self, train_dataloader, val_dataloader, None, ckpt_path)
+        # Added restore from full checkpoint
+        trainer.fit(self, train_dataloader, val_dataloader, ckpt_path=ckpt_path, weights_only=False)
         self.fitted_ = True
         return self
 

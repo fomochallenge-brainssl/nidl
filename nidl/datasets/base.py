@@ -275,8 +275,9 @@ class BaseImageDataset(BaseDataset):
             _files = {
                 self.sanitize_subject(path.split(os.sep)[_sidx]): path
                 for path in glob.glob(_regex)}
+            # Added sanitization of partecipants file
             self._data[f"{self.channels[idx]}"] = [
-                _files.get(subject) for subject in self._df["participant_id"]]
+                _files.get(self.sanitize_subject(subject)) for subject in self._df["participant_id"]]
         self._data = pd.DataFrame.from_dict(self._data)
         _missing_data = self._data[self._data.isnull().any(axis=1)]
         if len(_missing_data) > 0:
