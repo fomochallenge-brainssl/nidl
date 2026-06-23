@@ -7,15 +7,15 @@
 ##########################################################################
 
 from .intensity import (
+    RandomBiasField,
+    RandomContrastAdjust,
     RandomGaussianBlur,
     RandomGaussianNoise,
-    RandomBiasField,
-    RandomContrastAdjust
 )
 from .spatial import (
+    RandomAffine,
     RandomErasing,
     RandomFlip,
     RandomResizedCrop,
     RandomRotation,
-    RandomAffine
 )
