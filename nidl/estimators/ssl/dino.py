@@ -284,7 +284,7 @@ class DINO(TransformerMixin, BaseEstimator):
         z_teacher = self.forward_teacher(X)
 
         loss = self.loss(z_teacher, z_student, epoch=self.current_epoch)
-        self.log("loss/train", loss, prog_bar=True, sync_dist=True)
+        self.log("loss/train", loss, prog_bar=True, sync_dist=True, on_step=False, on_epoch=True)
         outputs = {
             "loss": loss,
             "z_student": z_student.detach(),

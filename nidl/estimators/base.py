@@ -229,7 +229,8 @@ class BaseEstimator(pl.LightningModule):
             training samples.
         val_dataloader: torch DataLoader, default None
             validation samples.
-
+        ckpt_path: Union[str, Path, None], default None
+            Path where training checkpoints are stored
         Returns
         -------
         self: object
