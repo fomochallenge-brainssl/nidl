@@ -175,6 +175,8 @@ class IJEPA(TransformerMixin, BaseEstimator):
             Union[str, LRSchedulerPLType]
         ] = "warmup_cosine",
         lr_scheduler_kwargs: Optional[dict[str, Any]] = None,
+        log_on_step: bool = False,
+        log_on_epoch: bool = True,
         **kwargs: Any,
     ):
 
@@ -238,6 +240,9 @@ class IJEPA(TransformerMixin, BaseEstimator):
 
         self._fill_default_lr_scheduler_kwargs()
 
+        self.log_on_step = log_on_step
+        self.log_on_epoch = log_on_epoch
+
     def _shared_step(self, batch):
         x, _ = self.parse_batch(batch, device=self.device)
 
@@ -291,7 +296,7 @@ class IJEPA(TransformerMixin, BaseEstimator):
         """
 
         outputs = self._shared_step(batch)
-        self.log("loss/train", outputs["loss"], prog_bar=True, sync_dist=True)
+        self.log("loss/train", outputs["loss"], prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         # Returns everything needed for further logging/metrics computation
         return outputs
 
@@ -325,7 +330,7 @@ class IJEPA(TransformerMixin, BaseEstimator):
         # update target backbone
         self.momentum_updater.update(self.context_encoder, self.target_encoder)
         # log lambda momentum
-        self.log("lambda", self.momentum_updater.cur_lambda)
+        self.log("lambda", self.momentum_updater.cur_lambda, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         # update lambda
         self.momentum_updater.update_lambda(
             cur_step=self.trainer.global_step,
@@ -362,7 +367,7 @@ class IJEPA(TransformerMixin, BaseEstimator):
         """
 
         outputs = self._shared_step(batch)
-        self.log("loss/val", outputs["loss"], prog_bar=True, sync_dist=True)
+        self.log("loss/val", outputs["loss"], prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         # Returns everything needed for further logging/metrics computation
         return outputs
 
