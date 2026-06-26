@@ -94,6 +94,11 @@ class SimCLR(TransformerMixin, BaseEstimator):
         Extra named arguments for the scheduler. By default, it is set to
         {"warmup_epochs": 10, "warmup_start_lr": 1e-6, "min_lr": 0.0,
         "interval": "step"}
+    log_on_step: bool, default = False
+        Whether to log after each training or validation step
+    log_on_epoch: bool, default = True
+        Whether to log after each epoch
+        
     **kwargs : dict, optional
         Additional keyword arguments for the BaseEstimator class, such as
         `max_epochs`, `max_steps`, `num_sanity_val_steps`,
@@ -146,6 +151,8 @@ class SimCLR(TransformerMixin, BaseEstimator):
             Union[str, LRSchedulerPLType]
         ] = "warmup_cosine",
         lr_scheduler_kwargs: Optional[dict[str, Any]] = None,
+        log_on_step: bool = False,
+        log_on_epoch: bool = True,
         **kwargs: Any,
     ):
         ignore = kwargs.pop("ignore", ["callbacks"])
@@ -179,6 +186,9 @@ class SimCLR(TransformerMixin, BaseEstimator):
         self._fill_default_lr_scheduler_kwargs()
 
         self.loss = InfoNCE(self.temperature)
+
+        self.log_on_step = log_on_step
+        self.log_on_epoch = log_on_epoch
 
     def _shared_step(self, batch: Sequence[Any], is_train: bool = True):
         """Shared code for training and validation steps."""
@@ -226,7 +236,7 @@ class SimCLR(TransformerMixin, BaseEstimator):
                 - "y": eventual targets (returned as is).
         """
         outputs = self._shared_step(batch, is_train=True)
-        self.log("loss/train", outputs["loss"], prog_bar=True, sync_dist=True)
+        self.log("loss/train", outputs["loss"], prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         # Returns everything needed for further logging/metrics computation
         return outputs
 
@@ -258,7 +268,7 @@ class SimCLR(TransformerMixin, BaseEstimator):
                 - "y": eventual targets (returned as is).
         """
         outputs = self._shared_step(batch, is_train=False)
-        self.log("loss/val", outputs["loss"], prog_bar=True, sync_dist=True)
+        self.log("loss/val", outputs["loss"], prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         # Returns everything needed for further logging/metrics computation
         return outputs
 

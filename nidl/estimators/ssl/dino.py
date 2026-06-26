@@ -139,6 +139,10 @@ class DINO(TransformerMixin, BaseEstimator):
         Optimizer used for training.
     lr_scheduler: LRSchedulerPLType or None
         Learning rate scheduler used for training.
+    log_on_step: bool, default = False
+        Whether to log after each training or validation step
+    log_on_epoch: bool, default = True
+        Whether to log after each epoch
 
     Notes
     -----
@@ -180,6 +184,8 @@ class DINO(TransformerMixin, BaseEstimator):
             Union[str, LRSchedulerPLType]
         ] = "warmup_cosine",
         lr_scheduler_kwargs: Optional[dict[str, Any]] = None,
+        log_on_step: bool = False,
+        log_on_epoch: bool = True,
         **kwargs: Any,
     ):
         ignore = kwargs.pop("ignore", ["callbacks"])
@@ -241,6 +247,9 @@ class DINO(TransformerMixin, BaseEstimator):
         self.lr_scheduler_kwargs = lr_scheduler_kwargs
         self.optimizer_kwargs = optimizer_kwargs
 
+        self.log_on_step = log_on_step
+        self.log_on_epoch = log_on_epoch
+
         self._fill_default_lr_scheduler_kwargs()
 
     def training_step(
@@ -284,7 +293,7 @@ class DINO(TransformerMixin, BaseEstimator):
         z_teacher = self.forward_teacher(X)
 
         loss = self.loss(z_teacher, z_student, epoch=self.current_epoch)
-        self.log("loss/train", loss, prog_bar=True, sync_dist=True, on_step=False, on_epoch=True)
+        self.log("loss/train", loss, prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         outputs = {
             "loss": loss,
             "z_student": z_student.detach(),
@@ -336,7 +345,7 @@ class DINO(TransformerMixin, BaseEstimator):
         self.momentum_updater.update(self.student, self.teacher)
         self.momentum_updater.update(self.student_head, self.teacher_head)
         # log lambda momentum
-        self.log("lambda", self.momentum_updater.cur_lambda, on_step=False, on_epoch=True)
+        self.log("lambda", self.momentum_updater.cur_lambda, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         # update lambda
         self.momentum_updater.update_lambda(
             cur_step=self.trainer.global_step,
@@ -398,7 +407,7 @@ class DINO(TransformerMixin, BaseEstimator):
         z_teacher = self.forward_teacher(X)
 
         val_loss = self.loss(z_teacher, z_student, epoch=self.current_epoch)
-        self.log("loss/val", val_loss, prog_bar=True, sync_dist=True, on_step=False, on_epoch=True)
+        self.log("loss/val", val_loss, prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         outputs = {
             "loss": val_loss,
             "z_student": z_student.detach(),

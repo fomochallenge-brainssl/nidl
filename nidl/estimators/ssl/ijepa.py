@@ -146,6 +146,12 @@ class IJEPA(TransformerMixin, BaseEstimator):
     loss : SmoothL1Loss
         Smooth l1 loss used for training the model.
 
+    log_on_step: bool, default = False
+        Whether to log after each training or validation step
+
+    log_on_epoch: bool, default = True
+        Whether to log after each epoch
+
     References
     ----------
     .. [1] Self-Supervised Learning from Images with a Joint-Embedding
