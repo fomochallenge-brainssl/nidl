@@ -443,3 +443,68 @@ class VolumeTransform(Transform):
                 f"got {data.shape}"
             )
         return data
+
+# Given an image, it produces k global crops, followed by n-k local crops
+class DinoTransform(Transform):
+    def __init__(
+        self, 
+        global_crops_transform: Callable,
+        local_crops_transform: Callable,
+        n_global_crops: Optional[int] = None,
+        n_local_crops: Optional[int] = None,
+    ):
+        # For the time being, we'll threat it as a determinsitic transform
+        super().__init__(1.0)
+
+        self._parse_crops_count(n_global_crops, "n_global_crops")
+        self._parse_crops_count(n_local_crops, "n_local_crops")
+
+        self.global_crops_transforms = []
+        self.local_crops_transforms = []
+        self.n_global_crops = n_global_crops
+        self.n_local_crops = n_local_crops
+
+        # Computing the full sequence of transforms to apply
+        if callable(global_crops_transform):
+            # The same transform is used to compute all global crops
+            for _ in range(self.n_global_crops):
+                self.global_crops_transforms.append(global_crops_transform)
+        else:
+            raise TypeError(
+                f"Unexpected global_crops_transform, got {type(global_crops_transform)} but expected a callable"
+            )
+    
+        if callable(local_crops_transform):
+            for _ in range(self.n_local_crops):
+                self.local_crops_transforms.append(local_crops_transform)
+        else:
+            raise TypeError(
+                f"Unexpected n_local_crops, got {type(local_crops_transform)} but expected a callable"
+            )
+    
+
+    def parse_data(self, data: Any):
+        """Data are not parsed here."""
+        return data
+
+    @staticmethod
+    def _parse_crops_count(crops_count, crops_type):
+        if crops_count is None:
+            crops_count = 1
+
+        if not isinstance(crops_count, int):
+            raise TypeError(
+                f"{crops_type} should be None or int, got {type(crops_count)}"
+            )
+
+        if crops_count < 0:
+            raise ValueError(f"{crops_type} must be positive")
+        return crops_count
+
+    # Applies the corresponding transform to the input image to generate a new view of it
+    # returns a list of views of the original image
+    def apply_transform(self, data_parsed, **kwargs) -> list[TypeTransformInput]:
+        global_crops = [global_transform(data_parsed, **kwargs) for global_transform in self.global_crops_transforms]
+        local_crops = [local_transform(data_parsed, **kwargs) for local_transform in self.local_crops_transforms]
+
+        return global_crops + local_crops
