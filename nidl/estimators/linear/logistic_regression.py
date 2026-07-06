@@ -14,6 +14,7 @@ import torch
 import torch.nn.functional as func
 from torch import nn, optim
 
+from ...utils.lr_scheduler import LinearWarmupCosineAnnealingLR
 from ..base import BaseEstimator, ClassifierMixin
 
 
@@ -79,10 +80,12 @@ class LogisticRegression(ClassifierMixin, BaseEstimator):
         lr: float,
         weight_decay: float,
         random_state: Optional[int] = None,
+        lr_scheduler_params: Optional[dict] = None,
         **kwargs,
     ):
         super().__init__(random_state=random_state, ignore=["model"], **kwargs)
         self.model = model
+        self.lr_scheduler_params = lr_scheduler_params
         self.validation_step_outputs = {}
 
     def freeze_encoder(self):
@@ -97,7 +100,7 @@ class LogisticRegression(ClassifierMixin, BaseEstimator):
         scheduler.
         """
         optimizer = optim.AdamW(
-            self.parameters(),
+            self.model.parameters(),
             lr=self.hparams.lr,
             weight_decay=self.hparams.weight_decay,
         )
@@ -105,17 +108,13 @@ class LogisticRegression(ClassifierMixin, BaseEstimator):
             hasattr(self.hparams, "max_epochs")
             and self.hparams.max_epochs is not None
         ):
-            lr_scheduler = optim.lr_scheduler.MultiStepLR(
+            lr_scheduler = LinearWarmupCosineAnnealingLR(
                 optimizer,
-                milestones=[
-                    int(self.hparams.max_epochs * 0.6),
-                    int(self.hparams.max_epochs * 0.8),
-                ],
-                gamma=0.1,
+                max_epochs=self.hparams.max_epochs,
+                **self.hparams.lr_scheduler_params,
             )
             return [optimizer], [lr_scheduler]
-        else:
-            return [optimizer]
+        return [optimizer]
 
     def cross_entropy_loss(self, batch: Sequence[torch.Tensor], mode: str):
         """Compute and log the InfoNCE loss using
