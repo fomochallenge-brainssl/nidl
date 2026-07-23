@@ -10,3 +10,4 @@ from .random_bias_field import RandomBiasField
 from .random_blur import RandomGaussianBlur
 from .random_contrastadjust import RandomContrastAdjust
 from .random_noise import RandomGaussianNoise
+from .random_noise_fast import RandomNoiseFast

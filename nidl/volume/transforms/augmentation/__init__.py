@@ -11,6 +11,7 @@ from .intensity import (
     RandomContrastAdjust,
     RandomGaussianBlur,
     RandomGaussianNoise,
+    RandomNoiseFast,
 )
 from .spatial import (
     RandomAffine,
