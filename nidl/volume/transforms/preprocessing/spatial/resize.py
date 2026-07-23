@@ -12,9 +12,14 @@ from typing import Union
 import numpy as np
 import SimpleITK as Stk
 import torch
+import torch.nn.functional as F  # ruff:ignore[lowercase-imported-as-non-lowercase]
 
 from .resample import Resample, TypeTransformInput
 
+_ITK_TO_TORCH_MODE = {
+    "nearest": "nearest",
+    "linear": "trilinear",
+}
 
 class Resize(Resample):
     """Resize a 3d volume to match a target shape.
@@ -94,6 +99,32 @@ class Resize(Resample):
 
         """
 
+        # Fast interpolation for torch tensors
+        if isinstance(data, torch.Tensor) and \
+            self.interpolation in _ITK_TO_TORCH_MODE:
+            return self._apply_transform_torch(data)
+
+        return self._apply_transform_sitk(data)
+
+
+    def _apply_transform_sitk(self, data: TypeTransformInput) \
+        -> TypeTransformInput:
+        """Resize the input volume.
+
+        Parameters
+        ----------
+        data: np.ndarray or torch.Tensor
+            The input data with shape :math:`(C, H, W, D)` or
+            :math:`(H, W, D)`. The channel dimension is never resized.
+
+        Returns
+        -------
+        data: np.ndarray or torch.Tensor
+            Resampled data with shape :math:`(H', W', D')`  or
+            :math:`(C, H', W', D')` and same type as input.
+
+        """
+        
         in_shape = data.shape
 
         if len(in_shape) == 4:
@@ -120,6 +151,30 @@ class Resize(Resample):
         if is_data_tensor:
             resampled = torch.as_tensor(resampled, dtype=dtype, device=device)
         return resampled
+
+    def _apply_transform_torch(self, data: torch.Tensor) -> torch.Tensor:
+        """Fast path: resize a torch.Tensor with F.interpolate (no SITK
+        round-trip). Only 'nearest' and 'linear' interpolation are supported
+        here; anything else falls back to the SITK path since ITK's
+        windowed-sinc / bspline kernels have no F.interpolate equivalent."""
+
+        if self.interpolation not in _ITK_TO_TORCH_MODE:
+            return self._apply_transform_sitk(data)
+
+        has_channel = data.ndim == 4
+        x = data if has_channel else data.unsqueeze(0)  # (C, H, W, D)
+        x = x.unsqueeze(0).float()  # (1, C, H, W, D) for interpolate
+
+        mode = _ITK_TO_TORCH_MODE[self.interpolation]
+        kwargs = {"align_corners": False} if mode != "nearest" else {}
+        resized = F.interpolate(
+            x, size=self.target_shape, mode=mode, **kwargs
+        )
+
+        resized = resized.squeeze(0)  # (C, H, W, D)
+        if not has_channel:
+            resized = resized.squeeze(0)
+        return resized.to(dtype=data.dtype).contiguous()
 
     @staticmethod
     def get_reference_image(

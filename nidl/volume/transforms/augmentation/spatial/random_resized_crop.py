@@ -68,6 +68,10 @@ class RandomResizedCrop(VolumeTransform):
         self.scale = self._parse_range(scale, check_min=0, check_max=1)
         self.ratio = self._parse_range(ratio, check_min=0)
         self.interpolation = interpolation
+        self.resampler = Resize(
+            self.target_shape,
+            interpolation=self.interpolation,
+        )
 
     @staticmethod
     def _sample_3d_box(in_shape, scale, ratio) -> list[slice]:
@@ -131,9 +135,5 @@ class RandomResizedCrop(VolumeTransform):
         data = data[tuple(box)]
 
         # resample the volume to match target shape
-        resample = Resize(
-            self.target_shape,
-            interpolation=self.interpolation,
-        )
-        resampled = resample(data)
+        resampled = self.resampler(data)
         return resampled
