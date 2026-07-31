@@ -90,6 +90,7 @@ class LogisticRegression(ClassifierMixin, BaseEstimator):
 
     def freeze_encoder(self):
         """Freeze the input encoder. Useful for self supervised settings."""
+        print("Freezing encoder's weights")
         self.model.requires_grad_(False)
         self.model.fc.requires_grad_(True)
 
