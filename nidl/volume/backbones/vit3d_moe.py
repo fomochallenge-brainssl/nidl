@@ -652,3 +652,11 @@ class VisionTransformer3D(nn.Module):
                 moe_scores_all.append(moe_scores)
 
         return self.norm(x), moe_scores_all
+
+    def forward_features(
+        self, 
+        x: torch.Tensor, 
+        masks: Optional[list[torch.Tensor]] = None
+    ):
+        return self.forward(x, masks)[0]
+        
