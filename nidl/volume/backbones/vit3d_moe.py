@@ -656,7 +656,11 @@ class VisionTransformer3D(nn.Module):
     def forward_features(
         self, 
         x: torch.Tensor, 
+        use_moe: bool = False,
         masks: Optional[list[torch.Tensor]] = None
     ):
-        return self.forward(x, masks)[0]
+        if use_moe:
+            return self.forward(x, masks)
+        else:
+            return self.forward(x, masks)[0]
         

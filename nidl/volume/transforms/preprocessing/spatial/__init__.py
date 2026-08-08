@@ -9,3 +9,5 @@
 from .crop_or_pad import CropOrPad
 from .resample import Resample
 from .resize import Resize
+from .letterbox import Letterbox
+from .inverse_letterbox import InverseLetterbox
