@@ -48,15 +48,6 @@ class RandomBiasField(VolumeTransform):
            correction of MR images of the brain." IEEE Transactions on
            Medical Imaging, 18(10), 885-896.
         
-
-    Examples
-    --------
-    >>> import torch
-    >>> from nidl.volume.transforms.augmentation.intensity import (
-    ...     RandomBiasField)
-    >>> volume = torch.rand(1, 64, 64, 64)  # shape (C, H, W, D)
-    >>> transform = RandomBiasField(coefficients=0.5, order=3)
-    >>> biased = transform(volume)  # shape (1, 64, 64, 64)
     """
 
     def __init__(
