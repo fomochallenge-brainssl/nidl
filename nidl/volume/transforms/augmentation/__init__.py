@@ -8,6 +8,7 @@
 
 from .intensity import (
     RandomBiasField,
+    RandomBiasFieldFast,
     RandomContrastAdjust,
     RandomGaussianBlur,
     RandomGaussianNoise,
