@@ -8,9 +8,11 @@
 
 from .intensity import (
     RandomBiasField,
+    RandomBiasFieldFast,
     RandomContrastAdjust,
     RandomGaussianBlur,
     RandomGaussianNoise,
+    RandomMotion,
 )
 from .spatial import (
     RandomAffine,
