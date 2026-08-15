@@ -576,6 +576,9 @@ class VisionTransformer3D(nn.Module):
         self.apply(self._init_weights)
         self._rescale_blocks()
 
+        # No class or register tokens --> no prefix tokens
+        self.num_prefix_tokens = 0
+
     @property
     def grid_shape(self) -> tuple[int, int, int]:
         """(nH, nW, nD) patch-grid dimensions."""
