@@ -64,6 +64,10 @@ class NeuroJEPAEncoderWrapper(nn.Module):
         return self.vit.embed_dim
 
     @property
+    def num_prefix_tokens(self) -> int:
+        return self.vit.num_prefix_tokens
+
+    @property
     def patch_size(self) -> tuple[int, int, int]:
         return self.vit.patch_size
 
