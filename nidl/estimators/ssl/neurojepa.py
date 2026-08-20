@@ -45,7 +45,7 @@ class NeuroJEPAEncoderWrapper(nn.Module):
         If ``vit`` is missing any of the required attributes.
     """
 
-    _REQUIRED = ("embed_dim", "patch_size", "grid_shape", "blocks")
+    _REQUIRED = ("embed_dim", "patch_size", "grid_shape", "num_prefix_tokens", "blocks")
 
     def __init__(self, vit: nn.Module):
         super().__init__()
@@ -83,6 +83,14 @@ class NeuroJEPAEncoderWrapper(nn.Module):
         self, x: torch.Tensor, masks: Optional[list[torch.Tensor]] = None
     ):
         return self.vit(x, masks=masks)
+
+    def forward_features(
+        self, 
+        x: torch.Tensor, 
+        use_moe: bool = False,
+        masks: Optional[list[torch.Tensor]] = None
+    ):
+        return self.vit.forward_features(x, use_moe, masks)
 
 
 class VisionTransformerPredictor3D(nn.Module):
