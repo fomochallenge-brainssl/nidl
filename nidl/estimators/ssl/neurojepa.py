@@ -1,3 +1,10 @@
+##########################################################################
+# NSAp - Copyright (C) CEA, 2026
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
+##########################################################################
 from __future__ import annotations
 
 import math
@@ -27,22 +34,34 @@ from nidl.estimators.ssl.utils.optimizer import configure_ssl_optimizers
 from nidl.utils.data_parsing import parse_x_or_xy_batch
 
 
+# @Duplums should we fully align this to the timm interface rather then just adding 
+# num_prefix_tokens and forward_features??
 class NeuroJEPAEncoderWrapper(nn.Module):
-    """Thin interface-checking wrapper around a user-supplied 3D encoder.
+    """
+        Thin interface-checking wrapper around a user-supplied 3D encoder.
+        This module adapts a Vision Transformer (ViT) implementation that follows
+        the interface described below and exposes a reduced, NeuroJEPA-oriented API.
+        Both forward and forward_features are fully delegated to the wrapped encoder.
+        
+        This version also requires a forward_features method and a num_prefix_tokens property 
+        for compatibility with code that might need it (e.g. segmentation decoders).
 
-    Parameters
-    ----------
-    vit : nn.Module
-        Must expose ``embed_dim`` (int), ``patch_size`` (3-tuple),
-        ``grid_shape`` (3-tuple), ``blocks`` (nn.ModuleList), and
-        ``forward(x, masks=None) -> (tokens, moe_scores)``.
-        `vision_transformer_3d.VisionTransformer3D` is a reference
-        implementation satisfying this contract.
+        Parameters
+        ----------
+        vit : nn.Module
+            Must expose 
+                ``embed_dim`` (int), ``patch_size`` (3-tuple),
+                ``grid_shape`` (3-tuple), ``num_prefix_tokens`` (int)
+                ``blocks`` (nn.ModuleList), 
+                ``forward(x, masks=None) -> (tokens, moe_scores)``,
+                ``forward(x, masks=None) -> (tokens, moe_scores)``,
+            `vision_transformer_3d.VisionTransformer3D` is a reference
+            implementation satisfying this contract.
 
-    Raises
-    ------
-    TypeError
-        If ``vit`` is missing any of the required attributes.
+        Raises
+        ------
+        TypeError
+            If ``vit`` is missing any of the required attributes.
     """
 
     _REQUIRED = ("embed_dim", "patch_size", "grid_shape", "num_prefix_tokens", "blocks")

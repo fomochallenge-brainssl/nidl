@@ -6,8 +6,44 @@ from .....transforms import VolumeTransform
 from .resize import Resize
 from .crop_or_pad import CropOrPad
 
-# Choice of interpolation and padding mode might be critical for segmentation mask
 class Letterbox(VolumeTransform):
+    """
+        Implementation of the letterbox transform introduced in YOLO [1].
+        It resizes the input volume to an isotropic target shape 
+        while preserving the aspect ratio. This is done to minimize the distortion 
+        of volume's objects (e.g. anatomical structures) induced by the resizing process.
+
+        The volume is first resized to an intermediate shape with a scale factor
+        such that the longest input dimension is smaller than the target one.
+        The resulting volume is then padded to the target shape.
+
+        Parameters
+        -----------
+        target_shape: int or tuple of (int, int, int)
+            Output shape :math:`(H', W', D')`. If int is given, it sets
+            :math:`H'=W'=D'`.
+            Target shape must be isotropic.
+        
+        padding_mode: str in {'edge', 'maximum', 'constant', 'mean', 'median',\
+        'minimum', 'reflect', 'symmetric'}
+            Possible modes for padding. See more infos in the `Numpy documentation
+            <https://numpy.org/doc/stable/reference/generated/numpy.pad.html>`_.
+            
+        constant_values: float or tuple[float, float, float]
+            The values to set the padded values for each
+            axis if the padding mode is 'constant'.
+        
+        interpolation: str in {'nearest', 'linear', 'bspline', 'cubic', \
+            'gaussian', 'label_gaussian', 'hamming', 'cosine', 'welch', \
+            'lanczos', 'blackman'}, default='linear'
+
+            Interpolation techniques available in ITK. See the documentation of
+            Nidl's resize transform for more details.
+
+        References
+        ----------
+        [1] Redmon, J., et al., "You Only Look Once: ..." CVPR, 2016. https://arxiv.org/abs/1506.02640
+    """
     def __init__(
         self,
         target_shape: Union[int, tuple[int, int, int]],
@@ -26,6 +62,8 @@ class Letterbox(VolumeTransform):
     
     def compute_intermediate_shape(self, original_shape):
         longest_dim = max(original_shape)
+        # The same scale factor is applied across all dimensions
+        # to preserve aspect ratio
         scale_factor = self.target_shape[0] / longest_dim
         resized_shape = tuple(int(round(dim * scale_factor)) for dim in original_shape)
 

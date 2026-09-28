@@ -8,6 +8,33 @@ from .crop_or_pad import CropOrPad
 
 
 class InverseLetterbox(VolumeTransform):
+    """
+        Inverse of the letterbox transform introduced in YOLO [1].
+        The input volume is first cropped back to an intermediate shape
+        and then resized to the original shape.
+
+        This transform might be useful for tasks that need to be solved
+        in the original volumes space (e.g. segmentation).
+
+        Parameters
+        -----------
+        standard_shape: int or tuple of (int, int, int)
+            Shape of the input volume :math:`(H', W', D')`.
+            If int is given, it sets :math:`H'=W'=D'`.
+            Target shape must be isotropic.
+        
+        interpolation: str in {'nearest', 'linear', 'bspline', 'cubic', \
+            'gaussian', 'label_gaussian', 'hamming', 'cosine', 'welch', \
+            'lanczos', 'blackman'}, default='linear'
+
+            Interpolation techniques available in ITK. See the documentation of
+            Nidl's resize transform for more details.
+
+
+        References
+        ----------
+        [1] Redmon, J., et al., "You Only Look Once: ..." CVPR, 2016. https://arxiv.org/abs/1506.02640
+    """
     def __init__(
         self, 
         standard_shape: Union[int, tuple[int, int, int]],

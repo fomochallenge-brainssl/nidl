@@ -444,8 +444,34 @@ class VolumeTransform(Transform):
             )
         return data
 
-# Given an image, it produces k global crops, followed by n-k local crops
 class DinoTransform(Transform):
+    """
+        Applies the two different sequences of transforms needed to compute
+        the global and local crops used as input of the DINO-family models [1].
+        The output volumes are returned in the order expected by the model
+        with global crops before local crops.
+
+        Parameters
+        -----------
+        global_crops_transform : Callable
+            Function that defines the transform used to compute 
+            ALL global crops from the input volume
+        
+        local_crops_transform : Callable
+            Function that defines the transform used to compute 
+            ALL local crops from the input volume
+        
+        n_global_crops : int
+            Number of global crops to be derived from the input volume
+        
+        n_local_crops : int
+            Number of global crops to be derived from the input volume
+
+        References
+        ------------
+        [1] Caron, M., et al., "Emerging Properties in Self-Supervised Vision
+           Transformers" ICCV, 2021. https://arxiv.org/abs/2104.14294
+    """
     def __init__(
         self, 
         global_crops_transform: Callable,
@@ -453,7 +479,7 @@ class DinoTransform(Transform):
         n_global_crops: Optional[int] = None,
         n_local_crops: Optional[int] = None,
     ):
-        # For the time being, we'll threat it as a determinsitic transform
+        # Determinsitic transform
         super().__init__(1.0)
 
         self._parse_crops_count(n_global_crops, "n_global_crops")
@@ -464,9 +490,7 @@ class DinoTransform(Transform):
         self.n_global_crops = n_global_crops
         self.n_local_crops = n_local_crops
 
-        # Computing the full sequence of transforms to apply
         if callable(global_crops_transform):
-            # The same transform is used to compute all global crops
             for _ in range(self.n_global_crops):
                 self.global_crops_transforms.append(global_crops_transform)
         else:
@@ -501,10 +525,15 @@ class DinoTransform(Transform):
             raise ValueError(f"{crops_type} must be positive")
         return crops_count
 
-    # Applies the corresponding transform to the input image to generate a new view of it
-    # returns a list of views of the original image
     def apply_transform(self, data_parsed, **kwargs) -> list[TypeTransformInput]:
-        global_crops = [global_transform(data_parsed, **kwargs) for global_transform in self.global_crops_transforms]
-        local_crops = [local_transform(data_parsed, **kwargs) for local_transform in self.local_crops_transforms]
+        global_crops = [
+            global_transform(data_parsed, **kwargs) 
+            for global_transform in self.global_crops_transforms
+        ]
+
+        local_crops = [
+            local_transform(data_parsed, **kwargs) 
+            for local_transform in self.local_crops_transforms
+        ]
 
         return global_crops + local_crops

@@ -518,8 +518,12 @@ class Block(nn.Module):
 
 
 class VisionTransformer3D(nn.Module):
-    """3D ViT backbone with an optional sparse MoE mixed in at configurable
-    layers.
+    """
+        3D ViT backbone with an optional sparse MoE mixed in at configurable layers.
+        
+        num_prefix_tokens and forward_features have been added for compatibility
+        with code developed for a standard vit backbone with no MoE
+        (as in nidl/backbones/vit3d.py)
     """
 
     def __init__(
@@ -576,7 +580,7 @@ class VisionTransformer3D(nn.Module):
         self.apply(self._init_weights)
         self._rescale_blocks()
 
-        # No class or register tokens --> no prefix tokens
+        # No class or register tokens in the neurojepa implementation
         self.num_prefix_tokens = 0
 
     @property
@@ -662,6 +666,10 @@ class VisionTransformer3D(nn.Module):
         use_moe: bool = False,
         masks: Optional[list[torch.Tensor]] = None
     ):
+        """
+            Given the definition of forward (which only computes the tokens' latents)
+            this becomes a simple wrapper that drops the moe scores
+        """
         if use_moe:
             return self.forward(x, masks)
         else:

@@ -684,23 +684,65 @@ class VisionTransformer3D(nn.Module):
             nwd.add("pos_embed")
         return nwd
 
-class ViTDino(VisionTransformer3D):
-    def __init__(self, img_size, patch_size, in_chans = 1, num_classes = 0, global_pool = "cls_token", embed_dim = 768, depth = 12, num_heads = 12, mlp_ratio = 4, qkv_bias = True, qk_norm = False, scale_attn_norm = False, scale_mlp_norm = False, proj_bias = True, class_token = True, reg_tokens = 0, no_embed_class = False, pre_norm = False, final_norm = True, fc_norm = None, dynamic_img_size = False, pos_embed = "learned", drop_rate = 0, pos_drop_rate = 0, proj_drop_rate = 0, attn_drop_rate = 0, drop_path_rate = 0, embed_layer = PatchEmbed3D, norm_layer = nn.LayerNorm, act_layer = nn.GELU, block_fn = Block, mlp_layer = Mlp, attn_layer=Attention):
-        super().__init__(img_size, patch_size, in_chans, num_classes, global_pool, embed_dim, depth, num_heads, mlp_ratio, qkv_bias, qk_norm, scale_attn_norm, scale_mlp_norm, proj_bias, class_token, reg_tokens, no_embed_class, pre_norm, final_norm, fc_norm, dynamic_img_size, pos_embed, drop_rate, pos_drop_rate, proj_drop_rate, attn_drop_rate, drop_path_rate, embed_layer, norm_layer, act_layer, block_fn, mlp_layer, attn_layer)
+class DynamicSizeViT(VisionTransformer3D):
+    """
+        Extension of the 3D ViT backbone that can handle variable-sized inputs
+        via positional embeddings interpolation as in DINO [1].
+        Positional embeddings are first computed for a grid of shape A.
+        When a volume with a grid of shape A' is presented in input
+        positional embeddings of shape A' are interpolated from those of shape A.
+
+        The code for positional embeddings interpolation is derived from [2]
+        with the adaptations to handle 3D volumes.
+
+        References
+        ----------
+        [1] Caron, M., et al., "Emerging Properties in Self-Supervised Vision
+           Transformers" ICCV, 2021. https://arxiv.org/abs/2104.14294
+
+        [2] https://github.com/facebookresearch/dino/blob/main/vision_transformer.py#L134
+    """
+    def __init__(
+            self, 
+            img_size, 
+            patch_size, 
+            in_chans = 1, 
+            num_classes = 0, 
+            global_pool = "cls_token", 
+            embed_dim = 768, 
+            depth = 12, 
+            num_heads = 12, 
+            mlp_ratio = 4, 
+            qkv_bias = True, 
+            qk_norm = False, 
+            scale_attn_norm = False, 
+            scale_mlp_norm = False, 
+            proj_bias = True, 
+            class_token = True, 
+            reg_tokens = 0, 
+            no_embed_class = False, 
+            pre_norm = False, 
+            final_norm = True, 
+            fc_norm = None, 
+            dynamic_img_size = False, 
+            pos_embed = "learned", 
+            drop_rate = 0, 
+            pos_drop_rate = 0, 
+            proj_drop_rate = 0, 
+            attn_drop_rate = 0, 
+            drop_path_rate = 0, 
+            embed_layer = PatchEmbed3D, 
+            norm_layer = nn.LayerNorm, 
+            act_layer = nn.GELU, 
+            block_fn = Block, 
+            mlp_layer = Mlp, 
+            attn_layer=Attention
+        ):
+            super().__init__(img_size, patch_size, in_chans, num_classes, global_pool, embed_dim, depth, num_heads, mlp_ratio, qkv_bias, qk_norm, scale_attn_norm, scale_mlp_norm, proj_bias, class_token, reg_tokens, no_embed_class, pre_norm, final_norm, fc_norm, dynamic_img_size, pos_embed, drop_rate, pos_drop_rate, proj_drop_rate, attn_drop_rate, drop_path_rate, embed_layer, norm_layer, act_layer, block_fn, mlp_layer, attn_layer)
 
     def forward_features(self, x: Tensor) -> Tensor:
         """
-        Compute token features.
-
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor of shape ``(B, C, H, W, D)``.
-
-        Returns
-        -------
-        torch.Tensor
-            Token features of shape ``(B, N_total, C)``.
+            As in the VisionTransformer3D with unpackig of volume shape for resizing
         """
         h, w, d = x.shape[2], x.shape[3], x.shape[4]
         x = self.patch_embed(x)
@@ -712,19 +754,7 @@ class ViTDino(VisionTransformer3D):
         return x
 
     def _pos_embed(self, x: Tensor, h, w, d) -> Tensor:
-        """
-        Add prefix tokens and absolute position embeddings.
 
-        Parameters
-        ----------
-        x : torch.Tensor
-            Patch tokens of shape ``(B, N, C)``.
-
-        Returns
-        -------
-        torch.Tensor
-            Tokens after prefix concatenation and positional embedding.
-        """
         if len(x.shape) != 3:
             raise ValueError(f"Expected input shape (B, N, C), got {x.shape}.")
 
@@ -735,40 +765,42 @@ class ViTDino(VisionTransformer3D):
         if self.reg_token is not None:
             prefix.append(self.reg_token.expand(B, -1, -1))
 
-        if self.no_embed_class:
-            if self.pos_embed is not None:
-                if x.shape[1] != self.pos_embed.shape[1]:
-                    interpolated_embed = self.interpolate_pos_encoding(h, w, d)
-                else:
-                    interpolated_embed = self.pos_embed
+        if not self.no_embed_class:
+            # prefix tokens must be included in positional embeddings computation
+            if prefix:
+                x = torch.cat([*prefix, x], dim=1)
+        
+        # If positional embeddings have been computed for a grid of different shape
+        # they are used to interpolate embeddings for new grid shape
+        if self.pos_embed is not None:
+            if x.shape[1] != self.pos_embed.shape[1]:
+                interpolated_embed = self.interpolate_pos_encoding(h, w, d)
+            else:
+                interpolated_embed = self.pos_embed
                 
-                x = x + interpolated_embed
-
-            if prefix:
-                x = torch.cat([*prefix, x], dim=1)
-        else:
-            if prefix:
-                x = torch.cat([*prefix, x], dim=1)
-
-            if self.pos_embed is not None:
-                if x.shape[1] != self.pos_embed.shape[1]:
-                    interpolated_embed = self.interpolate_pos_encoding(h, w, d)
-                else:
-                    interpolated_embed = self.pos_embed
-
-                x = x + interpolated_embed
+            x = x + interpolated_embed
+    
+        if self.no_embed_class and prefix:
+            x = torch.cat([*prefix, x], dim=1)
 
         return self.pos_drop(x)
 
     # "Resize" of the patch tokens grid to accout
     # for smaller local crops and correct positional embeddings
     def interpolate_pos_encoding(self, h, w, d):
-        # class token present
+        """
+            Interpolates positional embeddings for new target shape from
+            positional embeddings computed for a different shape.
+            In DINO, positional embeddings computed for (bigger) global crops
+            are used to derive embeddings for (smaller) local crops.
+            On the 3D volumes, trilinear interpolation is used 
+            (rather then bicubic as in the original implementation).
+        """
+
         if self.no_embed_class:
             patch_pos_embed = self.pos_embed
         else:
             prefix_pos_embed = self.pos_embed[:, :self.num_prefix_tokens]
-            # Get positional embeddings
             patch_pos_embed = self.pos_embed[:, self.num_prefix_tokens:]
 
         # original grid size
@@ -782,10 +814,11 @@ class ViTDino(VisionTransformer3D):
         # to avoid floating point error in the interpolation
         w0, h0, d0 = w0 + 0.1, h0 + 0.1, d0 + 0.1
 
-        # Reconstruct 2D grid in (B, W, H, D, C)
+        # Reconstruct 2D patch grid in (B, W, H, D, C)
         patches_grid = patch_pos_embed.reshape(1, h1, w1, d1, patch_embedding_dim)
 
-        # Reshape patch grid to target size via bicubic interpolation
+        # Interpolate positional embeddings for a grid of shape target size
+        # starting from patches_grid embeddings with trilinear interpolation
         patch_pos_embed = nn.functional.interpolate(
             patches_grid.permute(0, 4, 1, 2, 3), # convert to (B, C, H, W, D)
             scale_factor=(h0 / h1, w0 / w1, d0 / d1),
@@ -793,13 +826,9 @@ class ViTDino(VisionTransformer3D):
             align_corners = False
         )
 
-        # Sanity check
-        assert int(h0) == patch_pos_embed.shape[-3] and int(w0) == patch_pos_embed.shape[-2] and int(d0) == patch_pos_embed.shape[-1]
-
         # Reshape to 1-D vector of patch embeddings
         patch_pos_embed = patch_pos_embed.permute(0, 2, 3, 4, 1).view(1, -1, patch_embedding_dim)
 
-        # Add class token back if needed
         if self.no_embed_class:
             return patch_pos_embed
         else:
