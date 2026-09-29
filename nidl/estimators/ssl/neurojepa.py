@@ -34,41 +34,44 @@ from nidl.estimators.ssl.utils.optimizer import configure_ssl_optimizers
 from nidl.utils.data_parsing import parse_x_or_xy_batch
 
 
-# @Duplums should we fully align this to the timm interface rather then just adding 
-# num_prefix_tokens and forward_features??
 class NeuroJEPAEncoderWrapper(nn.Module):
     """
         Thin interface-checking wrapper around a user-supplied 3D encoder.
         This module adapts a Vision Transformer (ViT) implementation that follows
-        the interface described below and exposes a reduced, NeuroJEPA-oriented API.
-        Both forward and forward_features are fully delegated to the wrapped encoder.
+        the `timm` encoder interface and exposes a reduced, NeuroJEPA-oriented API. 
         
-        This version also requires a forward_features method and a num_prefix_tokens property 
-        for compatibility with code that might need it (e.g. segmentation decoders).
-
         Parameters
         ----------
         vit : nn.Module
-            Must expose 
-                ``embed_dim`` (int), ``patch_size`` (3-tuple),
-                ``grid_shape`` (3-tuple), ``num_prefix_tokens`` (int)
-                ``blocks`` (nn.ModuleList), 
-                ``forward(x, masks=None) -> (tokens, moe_scores)``,
-                ``forward(x, masks=None) -> (tokens, moe_scores)``,
-            `vision_transformer_3d.VisionTransformer3D` is a reference
+            Vision Transformer-like encoder module. The wrapped module must expose
+            the following attributes or methods:
+                - ``embed_dim`` (int)
+                - ``blocks`` (nn.ModuleList)
+                - ``has_class_token`` (bool)
+                - ``num_reg_tokens`` (int)
+                - ``patch_size`` (3-tuple)
+                - ``grid_shape`` (3-tuple)
+                - ``forward(x, masks=None) -> (tokens, moe_scores)``,
+            `vit3d_moe.VisionTransformer3D` is a reference
             implementation satisfying this contract.
 
         Raises
         ------
         TypeError
             If ``vit`` is missing any of the required attributes.
+
+        
+        Notes
+        ------
+        The forward_features method is functionally identical to forward and 
+        its kept for compatibility with any code that follows the timm interface
     """
 
-    _REQUIRED = ("embed_dim", "patch_size", "grid_shape", "num_prefix_tokens", "blocks")
+    _REQUIRED = ("embed_dim", "blocks", "has_class_token", "num_reg_tokens", "patch_size", "grid_shape")
 
     def __init__(self, vit: nn.Module):
         super().__init__()
-        missing = [a for a in self._REQUIRED if not hasattr(vit, a)]
+        missing = self._is_vit_like(vit)
         if missing:
             raise TypeError(
                 "encoder must follow the NeuroJEPA 3D-ViT interface, "
@@ -77,14 +80,54 @@ class NeuroJEPAEncoderWrapper(nn.Module):
         if not callable(getattr(vit, "forward", None)):
             raise TypeError("encoder must be callable (implement forward).")
         self.vit = vit
+    
+    def _is_vit_like(self, vit: nn.Module):
+        """
+            Check whether a module follows the expected timm-like ViT interface.
+
+            Parameters
+            ----------
+            vit : nn.Module
+                Module to validate.
+
+            Returns
+            -------
+            list[str]
+                Names of required attributes or methods that are missing from
+                ``vit``. An empty list indicates that the module matches the
+                expected interface.
+
+            Notes
+            -----
+            This is a shallow interface check. It verifies the presence of required
+            members, but does not validate their semantics, signatures, or runtime
+            behavior.
+        """
+        missings = [a for a in self._REQUIRED if not hasattr(vit, a)]
+        return missings
 
     @property
     def embed_dim(self) -> int:
         return self.vit.embed_dim
 
     @property
-    def num_prefix_tokens(self) -> int:
-        return self.vit.num_prefix_tokens
+    def num_heads(self):
+        return self.vit.blocks[0].attn.num_heads
+
+    @property
+    def has_class_token(self):
+        return self.vit.has_class_token
+
+    @property
+    def num_prefix_tokens(self):
+        # Prefer timm's own bookkeeping if present
+        if hasattr(self.vit, "num_prefix_tokens"):
+            return self.vit.num_prefix_tokens
+        n = 0
+        if self.has_class_token:
+            n += 1
+        n += self.num_reg_tokens
+        return n
 
     @property
     def patch_size(self) -> tuple[int, int, int]:
@@ -106,17 +149,18 @@ class NeuroJEPAEncoderWrapper(nn.Module):
     def forward_features(
         self, 
         x: torch.Tensor, 
-        use_moe: bool = False,
         masks: Optional[list[torch.Tensor]] = None
     ):
-        return self.vit.forward_features(x, use_moe, masks)
+        return self.forward(x, masks)
 
 
 class VisionTransformerPredictor3D(nn.Module):
-    """Takes context-encoder tokens + (context indices, target indices) and
-    predicts the target-encoder's latents at the target positions.
+    """
+        Lightweight Vision Transformer that takes 
+        context-encoder tokens + (context indices, target indices) and
+        predicts the target-encoder's latents at the target positions.
 
-    Ported from: src/neurojepa/models/predictor.py
+        Ported from: src/neurojepa/models/predictor.py
     """
 
     def __init__(
@@ -569,9 +613,8 @@ class NeuroJEPA(TransformerMixin, BaseEstimator):
     Parameters
     ----------
     encoder : nn.Module
-        3D ViT-like encoder. Must expose ``embed_dim``, ``patch_size``,
-        ``grid_shape``, ``blocks``, and ``forward(x, masks=None)``. See
-        `nidl.volume.backbones.vit3d_moe.VisionTransformer3D` for a reference
+        3D ViT-like encoder that follows the `timm` interface.
+        See `nidl.volume.backbones.vit3d_moe.VisionTransformer3D` for a reference
         implementation (with or without a sparse MoE backbone -- pass
         ``use_moe=True`` to that constructor and set ``use_moe=True`` here
         too so the MoE bias update runs during training).

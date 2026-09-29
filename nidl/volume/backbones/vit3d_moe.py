@@ -1,3 +1,10 @@
+##########################################################################
+# NSAp - Copyright (C) CEA, 2025
+# Distributed under the terms of the CeCILL-B license, as published by
+# the CEA-CNRS-INRIA. Refer to the LICENSE file or to
+# http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
+# for details.
+##########################################################################
 from __future__ import annotations
 
 import math
@@ -663,15 +670,11 @@ class VisionTransformer3D(nn.Module):
     def forward_features(
         self, 
         x: torch.Tensor, 
-        use_moe: bool = False,
         masks: Optional[list[torch.Tensor]] = None
     ):
         """
             Given the definition of forward (which only computes the tokens' latents)
             this becomes a simple wrapper that drops the moe scores
         """
-        if use_moe:
-            return self.forward(x, masks)
-        else:
-            return self.forward(x, masks)[0]
+        return self.forward(x, masks)
         
