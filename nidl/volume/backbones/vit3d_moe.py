@@ -524,7 +524,7 @@ class Block(nn.Module):
 # ==========================================================================
 
 
-class VisionTransformer3D(nn.Module):
+class VisionTransformer3DMoE(nn.Module):
     """
         3D ViT backbone with an optional sparse MoE mixed in at configurable layers.
         
@@ -546,6 +546,8 @@ class VisionTransformer3D(nn.Module):
         use_moe=False,
         moe_params: Optional[MoEParams] = None,
         init_std=0.02,
+        class_token: bool = False,
+        reg_tokens: int = 0
     ):
         super().__init__()
         self.embed_dim = embed_dim
@@ -587,8 +589,11 @@ class VisionTransformer3D(nn.Module):
         self.apply(self._init_weights)
         self._rescale_blocks()
 
-        # No class or register tokens in the neurojepa implementation
-        self.num_prefix_tokens = 0
+        self.has_class_token = class_token
+        self.num_reg_tokens = int(reg_tokens)
+        self.num_prefix_tokens = (
+            1 if self.has_class_token else 0
+        ) + self.num_reg_tokens
 
     @property
     def grid_shape(self) -> tuple[int, int, int]:
@@ -628,14 +633,35 @@ class VisionTransformer3D(nn.Module):
         self, x: torch.Tensor, masks: Optional[list[torch.Tensor]] = None
     ):
         """
-        x : (B, C, H, W, D) volume.
-        masks : optional list of (B, K) LongTensors -- if given, only those
-            patch indices are kept; output batch is multiplied by
-            len(masks) (one block per mask, concatenated along batch).
+            x : (B, C, H, W, D) volume.
+            masks : optional list of (B, K) LongTensors -- if given, only those
+                patch indices are kept; output batch is multiplied by
+                len(masks) (one block per mask, concatenated along batch).
 
-        Returns (tokens, moe_scores) where `tokens` is (B[*len(masks)], K, E)
-        and `moe_scores` is a list (one entry per block) of router scores,
-        or an empty list if `use_moe=False`.
+            Returns (tokens, moe_scores) where `tokens` is (B[*len(masks)], K, E)
+            and `moe_scores` is a list (one entry per block) of router scores,
+            or an empty list if `use_moe=False`.
+
+            Given that the backbone has been developed for NeuroJEPA, it doesn't currently
+            feature a forward_head method, making forward and forward_features
+            functionally equivalent.
+        """
+        return self.forward_features(x, masks)
+
+    def forward_features(
+        self, 
+        x: torch.Tensor, 
+        masks: Optional[list[torch.Tensor]] = None
+    ):
+        """
+            x : (B, C, H, W, D) volume.
+            masks : optional list of (B, K) LongTensors -- if given, only those
+                patch indices are kept; output batch is multiplied by
+                len(masks) (one block per mask, concatenated along batch).
+
+            Returns (tokens, moe_scores) where `tokens` is (B[*len(masks)], K, E)
+            and `moe_scores` is a list (one entry per block) of router scores,
+            or an empty list if `use_moe=False`.
         """
         _, _, H, W, D = x.shape
         H_p, W_p, D_p = (
@@ -666,15 +692,4 @@ class VisionTransformer3D(nn.Module):
                 moe_scores_all.append(moe_scores)
 
         return self.norm(x), moe_scores_all
-
-    def forward_features(
-        self, 
-        x: torch.Tensor, 
-        masks: Optional[list[torch.Tensor]] = None
-    ):
-        """
-            Given the definition of forward (which only computes the tokens' latents)
-            this becomes a simple wrapper that drops the moe scores
-        """
-        return self.forward(x, masks)
         

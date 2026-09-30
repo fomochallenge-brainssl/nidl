@@ -63,6 +63,8 @@ def _tiny_vit(use_moe: bool = False) -> VisionTransformer3DMoE:
         num_heads=2,
         use_moe=use_moe,
         moe_params=moe_params,
+        has_class_token=False,
+        num_reg_tokens=0
     )
 
 
