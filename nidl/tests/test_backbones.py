@@ -10,7 +10,7 @@ import unittest
 
 import torch
 
-from nidl.backbones.volume import (
+from nidl.volume.backbones import (
     AlexNet,
     densenet121,
     resnet18,
@@ -21,7 +21,7 @@ from nidl.backbones.volume import (
     VisionTransformer3DMoE
 )
 
-from nidl.backbones.volume.vit3d_moe import (
+from nidl.volume.backbones.vit3d_moe import (
     MoEParams
 )
 
@@ -29,9 +29,10 @@ from nidl.utils import print_multicolor
 
 VOLUME_SHAPE = 128
 PATCH_SIZE = 16
-TOKENS_COUNT = (128 // 16) * 3
+TOKENS_COUNT = (128 // 16) * (128 // 16) * (128 // 16)
 SMALLER_SHAPE = 96
-TOKENS_COUNT_SMALLER = (96 // 16) * 3
+TOKENS_COUNT_SMALLER = (96 // 16) * (96 // 16) * (96 // 16)
+BLOCKS_NUMBER = 1
 
 class TestBackbones(unittest.TestCase):
     """ Test backbones.
@@ -40,7 +41,7 @@ class TestBackbones(unittest.TestCase):
         """ Setup test.
         """
         self.n_images = 3
-        self.n_channels = 2
+        self.n_channels = 1
         self.fake_data = torch.rand(
             self.n_images, 
             self.n_channels, 
@@ -91,7 +92,7 @@ class TestBackbones(unittest.TestCase):
             }
         }
 
-    def _tiny_vit_moe() -> VisionTransformer3DMoE:
+    def _tiny_vit_moe(self):
         """
             A minimal VisionTransformer3DMoE small enough to run instantly on CPU.
         """
@@ -109,15 +110,15 @@ class TestBackbones(unittest.TestCase):
             patch_size=(PATCH_SIZE, PATCH_SIZE, PATCH_SIZE),
             in_chans=1,
             embed_dim=12,
-            depth=1,
+            depth=BLOCKS_NUMBER,
             num_heads=2,
             use_moe=True,
             moe_params=moe_params,
-            has_class_token=False,
-            num_reg_tokens=0
+            class_token=False,
+            reg_tokens=0
         )
 
-    def _tiny_dynamic_vit() -> DynamicSizeViT:
+    def _tiny_dynamic_vit(self):
         """
             A minimal DynamicSizeViT small enough to run instantly on CPU.
         """
@@ -127,10 +128,11 @@ class TestBackbones(unittest.TestCase):
             patch_size=(PATCH_SIZE, PATCH_SIZE, PATCH_SIZE),
             in_chans=1,
             embed_dim=12,
-            depth=1,
+            depth=BLOCKS_NUMBER,
             num_heads=2,
-            has_class_token=True,
-            num_reg_tokens=0
+            class_token=False,
+            reg_tokens=0,
+            dynamic_img_size=True
         )
 
     def test_cnn_backbones(self):
@@ -150,20 +152,26 @@ class TestBackbones(unittest.TestCase):
         """
             Test shape produced by forward_features method of MOE Vit
         """
-        print(f"[{print_multicolor("ViT MoE forward_features", display=False)}]...")
+        print(f"[{print_multicolor('ViT MoE forward_features', display=False)}]...")
         backbone = self._tiny_vit_moe()
         out = backbone.forward_features(self.fake_data)
 
-        self.assertTrue(out.shape == ((self.n_images, TOKENS_COUNT, backbone.embed_dim), backbone.depth))
+        print(f"Forward features shape: {out[0].shape}\n")
+        self.assertTrue(len(out) == 2)
+        self.assertTrue(out[0].shape == (self.n_images, TOKENS_COUNT, backbone.embed_dim))
+        self.assertTrue(len(out[1]) == BLOCKS_NUMBER)
     
     def test_dynamicvit_forward_features(self):
         """
             Test shape produced by forward_features method of DynamicSizeVit
         """
-        print(f"[{print_multicolor("DynamicSizeVit forward_features", display=False)}]...")
+        print(f"[{print_multicolor('DynamicSizeVit forward_features', display=False)}]...")
         backbone = self._tiny_dynamic_vit()
         out_larger = backbone.forward_features(self.fake_data)
         out_smaller = backbone.forward_features(self.fake_data_diff_shape)
+
+        print(f"Forward features shape: {out_larger.shape}\n")
+        print(f"Forward features shape: {out_smaller.shape}\n")
 
         self.assertTrue(out_larger.shape == (self.n_images, TOKENS_COUNT, backbone.embed_dim))
         self.assertTrue(out_smaller.shape == (self.n_images, TOKENS_COUNT_SMALLER, backbone.embed_dim))
