@@ -156,7 +156,6 @@ class TestBackbones(unittest.TestCase):
         backbone = self._tiny_vit_moe()
         out = backbone.forward_features(self.fake_data)
 
-        print(f"Forward features shape: {out[0].shape}\n")
         self.assertTrue(len(out) == 2)
         self.assertTrue(out[0].shape == (self.n_images, TOKENS_COUNT, backbone.embed_dim))
         self.assertTrue(len(out[1]) == BLOCKS_NUMBER)
@@ -169,9 +168,6 @@ class TestBackbones(unittest.TestCase):
         backbone = self._tiny_dynamic_vit()
         out_larger = backbone.forward_features(self.fake_data)
         out_smaller = backbone.forward_features(self.fake_data_diff_shape)
-
-        print(f"Forward features shape: {out_larger.shape}\n")
-        print(f"Forward features shape: {out_smaller.shape}\n")
 
         self.assertTrue(out_larger.shape == (self.n_images, TOKENS_COUNT, backbone.embed_dim))
         self.assertTrue(out_smaller.shape == (self.n_images, TOKENS_COUNT_SMALLER, backbone.embed_dim))

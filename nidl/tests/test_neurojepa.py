@@ -13,7 +13,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
-from nidl.backbones.volume.vit3d_moe import (
+from nidl.volume.backbones.vit3d_moe import (
     Block,
     MoE,
     MoEParams,
