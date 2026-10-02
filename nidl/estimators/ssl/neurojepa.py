@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import Any, Optional, Union
 
 import torch
-import torch.nn.functional as F  # noqa: N812
+import torch.nn.functional as F  # ruff: ignore[lowercase-imported-as-non-lowercase]
 from torch import nn
 from torch.optim import Optimizer
 
@@ -36,38 +36,42 @@ from nidl.utils.data_parsing import parse_x_or_xy_batch
 
 class NeuroJEPAEncoderWrapper(nn.Module):
     """
-        Thin interface-checking wrapper around a user-supplied 3D encoder.
-        This module adapts a Vision Transformer (ViT) implementation that follows
-        the `timm` encoder interface and exposes a reduced, NeuroJEPA-oriented API. 
+    Thin interface-checking wrapper around a user-supplied 3D encoder.
+    This module adapts a Vision Transformer (ViT) implementation that follows
+    the `timm` encoder interface and exposes a reduced NeuroJEPA-oriented API.
         
-        Parameters
-        ----------
-        vit : nn.Module
-            Vision Transformer-like encoder module. The wrapped module must expose
-            the following attributes or methods:
-                - ``embed_dim`` (int)
-                - ``blocks`` (nn.ModuleList)
-                - ``has_class_token`` (bool)
-                - ``num_reg_tokens`` (int)
-                - ``patch_size`` (3-tuple)
-                - ``grid_shape`` (3-tuple)
-                - ``forward(x, masks=None) -> (tokens, moe_scores)``,
-            `vit3d_moe.VisionTransformer3D` is a reference
-            implementation satisfying this contract.
+    Parameters
+    ----------
+    vit : nn.Module
+        Vision Transformer-like encoder module. The wrapped module must
+        expose the following attributes or methods:
+            - ``embed_dim`` (int)
+            - ``blocks`` (nn.ModuleList)
+            - ``has_class_token`` (bool)
+            - ``num_reg_tokens`` (int)
+            - ``patch_size`` (3-tuple)
+            - ``grid_shape`` (3-tuple)
+            - ``forward(x, masks=None) -> (tokens, moe_scores)``,
+        `vit3d_moe.VisionTransformer3D` is a reference implementation
+        satisfying this contract.
 
-        Raises
-        ------
-        TypeError
-            If ``vit`` is missing any of the required attributes.
+    Raises
+    ------
+    TypeError
+        If ``vit`` is missing any of the required attributes.
 
         
-        Notes
-        ------
-        The forward_features method is functionally identical to forward and 
-        its kept for compatibility with any code that follows the timm interface
+    Notes
+    ------
+    The forward_features method is functionally identical to forward
+    and its kept for compatibility with code that follows the timm interface
     """
 
-    _REQUIRED = ("embed_dim", "blocks", "has_class_token", "num_reg_tokens", "patch_size", "grid_shape")
+    _REQUIRED = (
+        "embed_dim", "blocks",
+        "has_class_token", "num_reg_tokens",
+        "patch_size", "grid_shape"
+    )
 
     def __init__(self, vit: nn.Module):
         super().__init__()
@@ -83,25 +87,25 @@ class NeuroJEPAEncoderWrapper(nn.Module):
     
     def _is_vit_like(self, vit: nn.Module):
         """
-            Check whether a module follows the expected timm-like ViT interface.
+        Check whether a module follows the expected timm-like ViT interface
 
-            Parameters
-            ----------
-            vit : nn.Module
-                Module to validate.
+        Parameters
+        ----------
+        vit : nn.Module
+            Module to validate.
 
-            Returns
-            -------
-            list[str]
-                Names of required attributes or methods that are missing from
-                ``vit``. An empty list indicates that the module matches the
-                expected interface.
+        Returns
+        -------
+        list[str]
+            Names of required attributes or methods that are missing from
+            ``vit``. An empty list indicates that the module matches the
+            expected interface.
 
-            Notes
-            -----
-            This is a shallow interface check. It verifies the presence of required
-            members, but does not validate their semantics, signatures, or runtime
-            behavior.
+        Notes
+        -----
+        This is a shallow interface check.
+        It verifies the presence of required members, but does not validate
+        their semantics, signatures, or runtime behavior.
         """
         missings = [a for a in self._REQUIRED if not hasattr(vit, a)]
         return missings
@@ -147,8 +151,8 @@ class NeuroJEPAEncoderWrapper(nn.Module):
         return self.vit(x, masks=masks)
 
     def forward_features(
-        self, 
-        x: torch.Tensor, 
+        self,
+        x: torch.Tensor,
         masks: Optional[list[torch.Tensor]] = None
     ):
         return self.forward(x, masks)
@@ -156,11 +160,11 @@ class NeuroJEPAEncoderWrapper(nn.Module):
 
 class VisionTransformerPredictor3D(nn.Module):
     """
-        Lightweight Vision Transformer that takes 
-        context-encoder tokens + (context indices, target indices) and
-        predicts the target-encoder's latents at the target positions.
+    Lightweight Vision Transformer that takes
+    context-encoder tokens + (context indices, target indices) and
+    predicts the target-encoder's latents at the target positions.
 
-        Ported from: src/neurojepa/models/predictor.py
+    Ported from: src/neurojepa/models/predictor.py
     """
 
     def __init__(
@@ -614,8 +618,8 @@ class NeuroJEPA(TransformerMixin, BaseEstimator):
     ----------
     encoder : nn.Module
         3D ViT-like encoder that follows the `timm` interface.
-        See `nidl.volume.backbones.vit3d_moe.VisionTransformer3D` for a reference
-        implementation (with or without a sparse MoE backbone -- pass
+        See `nidl.volume.backbones.vit3d_moe.VisionTransformer3D` for a
+        reference implementation (with or without a sparse MoE backbone -- pass
         ``use_moe=True`` to that constructor and set ``use_moe=True`` here
         too so the MoE bias update runs during training).
 
