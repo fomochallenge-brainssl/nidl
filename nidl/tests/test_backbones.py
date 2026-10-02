@@ -18,10 +18,7 @@ from nidl.backbones.volume import (
     resnet50,
     resnet50_trunc,
     DynamicSizeViT,
-    VisionTransformer3DMoE
-)
-
-from nidl.backbones.volume.vit3d_moe import (
+    VisionTransformer3DMoE,
     MoEParams
 )
 

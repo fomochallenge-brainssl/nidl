@@ -26,6 +26,7 @@ from .resnet3d import (
 )
 from .vit3d import (
     VisionTransformer3D,
+    DynamicSizeViT,
     vit_base_patch16_128,
     vit_large_patch16_128,
     vit_small_patch16_128,

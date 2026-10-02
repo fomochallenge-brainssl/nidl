@@ -14,12 +14,15 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 from nidl.backbones.volume.vit3d_moe import (
+    MoEParams,
+    VisionTransformer3DMoE
+)
+from nidl.backbones.volume.vit3d_moe import (
     Block,
     MoE,
-    MoEParams,
-    VisionTransformer3DMoE,
-    moe_bias_update,
+    moe_bias_update
 )
+
 from nidl.estimators.ssl.neurojepa import (
     DEFAULT_MULTISCALE_MASK_CONFIG,
     MaskScaleConfig,
