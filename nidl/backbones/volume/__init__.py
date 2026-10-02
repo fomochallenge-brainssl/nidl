@@ -33,5 +33,5 @@ from .vit3d import (
 )
 from .vit3d_moe import (
     MoEParams,
-    VisionTransformer3DMoE,
+    VisionTransformer3DMoE
 )
