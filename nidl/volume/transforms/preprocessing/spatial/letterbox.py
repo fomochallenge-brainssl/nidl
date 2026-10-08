@@ -1,6 +1,4 @@
 from typing import Union
-import math
-import torch
 
 from .....transforms import VolumeTransform
 from .resize import Resize
@@ -70,36 +68,16 @@ class Letterbox(VolumeTransform):
         return resized_shape
     
     def apply_transform(self, data_parsed, *args, **kwargs):
-        original_shape = data_parsed.shape
+        # Ignore channel dimension: Resize and CropOrPad handle (C, H, W, D)
+        # and (H, W, D) inputs, as numpy arrays or torch tensors
+        in_shape = data_parsed.shape[-3:]
 
-        if len(original_shape) == 4:
-            in_shape = original_shape[1:]
-            channels_count = original_shape[0]
-        else:
-            in_shape = original_shape
-            channels_count = 1
-            data_parsed = data_parsed.unsqueeze(0)
+        # 1. Compute scale factor (same for all dimensions to preserve ratio)
+        resized_shape = self.compute_intermediate_shape(in_shape)
 
-        # Apply the transform across all channels
-        output_image = []
-        for i in range(channels_count):
-            # 1. Compute scale factor (same for all dimensions to preserve ratio)
-            resized_shape = self.compute_intermediate_shape(in_shape)
+        # 2. Resize image
+        resize_transform = Resize(resized_shape, self.interpolation)
+        resized_image = resize_transform(data_parsed)
 
-            # 2. Resize image
-            resize_transform = Resize(resized_shape, self.interpolation)
-            resized_image = resize_transform(data_parsed[i])
-
-            # 3. Padding to target shape
-            padded_image = self.padding_transform(resized_image)
-
-            output_image.append(padded_image)
-        
-        output_image = torch.stack(output_image, dim=0)
-
-        # Remove channel dimension
-        if len(original_shape) == 3:
-            output_image = output_image.squeeze(0)
-
-
-        return output_image
+        # 3. Padding to target shape
+        return self.padding_transform(resized_image)
