@@ -1,7 +1,7 @@
-:mod:`nidl.volume.backbones`: Available backbones
+:mod:`nidl.backbones`: Available backbones
 =================================================
 
-.. automodule:: nidl.volume.backbones
+.. automodule:: nidl.backbones
    :no-members:
    :no-inherited-members:
 
@@ -43,7 +43,7 @@ Volume
 Classes that implement architectures that can be applied on brain volumes and
 various utility functions.
 
-.. currentmodule:: nidl.volume.backbones
+.. currentmodule:: nidl.backbones
 
 .. autosummary::
    :toctree: generated/
@@ -55,7 +55,7 @@ various utility functions.
     ResNetTruncated
     VisionTransformer3D
 
-.. autoclasstree:: nidl.volume.backbones
+.. autoclasstree:: nidl.backbones
    :strict:
    :align: center
 

@@ -7,7 +7,7 @@ import numpy as np
 import SimpleITK as Stk
 import torch
 
-from .....transforms import TypeTransformInput, VolumeTransform
+from ....transforms import TypeTransformInput, VolumeTransform
 from ...preprocessing.spatial.resample import Resample
 
 
@@ -53,7 +53,7 @@ class RandomAffine(VolumeTransform):
         compromise between image quality and speed and is a solid choice for
         data augmentation during training. Use `nearest` for label maps to
         preserve categorical values. See
-        :class:`~nidl.volume.transforms.preprocessing.spatial.Resample` for a
+        :class:`~nidl.transforms.volume.preprocessing.spatial.Resample` for a
         description of every method.
     default_pad_value: float, default=0.0
         Value used to fill voxels mapped outside the input volume.
@@ -75,7 +75,7 @@ class RandomAffine(VolumeTransform):
     Examples
     --------
     >>> import torch
-    >>> from nidl.volume.transforms.augmentation.spatial import RandomAffine
+    >>> from nidl.transforms.volume.augmentation.spatial import RandomAffine
     >>> volume = torch.randn(1, 64, 64, 64)  # shape: (C, H, W, D)
     >>> transform = RandomAffine(scales=(0.9, 1.1), degrees=(-10, 10))
     >>> transformed = transform(volume)  # shape (1, 64, 64, 64)

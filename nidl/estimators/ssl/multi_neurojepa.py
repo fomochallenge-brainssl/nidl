@@ -9,7 +9,7 @@ import torch.nn.functional as F  # noqa: N812
 from torch import nn
 from torch.optim import Optimizer
 
-from nidl.volume.backbones.vit3d_moe import (
+from nidl.backbones.vit3d_moe import (
     Block,
     apply_masks,
     moe_bias_update,

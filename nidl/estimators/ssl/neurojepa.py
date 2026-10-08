@@ -17,7 +17,7 @@ import torch.nn.functional as F  # noqa: N812
 from torch import nn
 from torch.optim import Optimizer
 
-from nidl.volume.backbones.vit3d_moe import (
+from nidl.backbones.vit3d_moe import (
     Block,
     apply_masks,
     moe_bias_update,
@@ -614,7 +614,7 @@ class NeuroJEPA(TransformerMixin, BaseEstimator):
     ----------
     encoder : nn.Module
         3D ViT-like encoder that follows the `timm` interface.
-        See `nidl.volume.backbones.vit3d_moe.VisionTransformer3D` for a reference
+        See `nidl.backbones.vit3d_moe.VisionTransformer3D` for a reference
         implementation (with or without a sparse MoE backbone -- pass
         ``use_moe=True`` to that constructor and set ``use_moe=True`` here
         too so the MoE bias update runs during training).

@@ -1,6 +1,6 @@
 from typing import Union
 
-from .....transforms import VolumeTransform
+from ....transforms import VolumeTransform
 from .resize import Resize
 from .crop_or_pad import CropOrPad
 

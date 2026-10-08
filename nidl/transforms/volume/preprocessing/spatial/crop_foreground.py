@@ -12,7 +12,7 @@ from typing import Callable, Union
 import numpy as np
 import torch
 
-from .....transforms import TypeTransformInput, VolumeTransform
+from ....transforms import TypeTransformInput, VolumeTransform
 
 
 def _is_positive(data: np.ndarray) -> np.ndarray:
@@ -38,7 +38,7 @@ class CropForeground(VolumeTransform):
         input, used to select the foreground voxels. Applied to the
         whole volume at once (all channels together). As for the
         `masking_fn` of
-        :class:`nidl.volume.transforms.preprocessing.RobustRescaling`,
+        :class:`nidl.transforms.volume.preprocessing.RobustRescaling`,
         it always receives a :class:`numpy.ndarray`, even when the
         input data is a :class:`torch.Tensor`.
 
@@ -58,7 +58,7 @@ class CropForeground(VolumeTransform):
     padding_mode: str, default="constant"
         Padding mode used when `allow_smaller=False` and the bounding
         box extends past the volume edges. See
-        :class:`nidl.volume.transforms.preprocessing.CropOrPad` for the
+        :class:`nidl.transforms.volume.preprocessing.CropOrPad` for the
         accepted values.
 
     constant_values: float, default=0.0
@@ -81,7 +81,7 @@ class CropForeground(VolumeTransform):
     Examples
     --------
     >>> import numpy as np
-    >>> from nidl.volume.transforms.preprocessing import CropForeground
+    >>> from nidl.transforms.volume.preprocessing import CropForeground
     >>> volume = np.zeros((1, 10, 10, 10))
     >>> volume[:, 4:6, 4:6, 4:6] = 1.0
     >>> transform = CropForeground(margin=1)

@@ -7,7 +7,7 @@ from typing import Optional, Union
 import numpy as np
 import torch
 
-from .....transforms import TypeTransformInput, VolumeTransform
+from ....transforms import TypeTransformInput, VolumeTransform
 
 
 class RandomContrastAdjust(VolumeTransform):
@@ -53,7 +53,7 @@ class RandomContrastAdjust(VolumeTransform):
     Examples
     --------
     >>> import torch
-    >>> from nidl.volume.transforms.augmentation.intensity import (
+    >>> from nidl.transforms.volume.augmentation.intensity import (
     ...     RandomContrastAdjust)
     >>> volume = torch.randn(1, 64, 64, 64)  # z-scored, shape (C, H, W, D)
     >>> transform = RandomContrastAdjust(

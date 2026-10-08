@@ -8,3 +8,12 @@
 
 """ Definition of common architectures.
 """
+
+from .transforms import (
+    DinoTransform,
+    Identity,
+    MultiViewsTransform,
+    Transform,
+    TypeTransformInput,
+    VolumeTransform,
+)

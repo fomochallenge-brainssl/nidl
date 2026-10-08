@@ -19,7 +19,7 @@ from nidl.transforms.volume.augmentation import (
 from nidl.transforms.volume.preprocessing import (
     ZNormalization, RobustRescaling, CropOrPad, Resize, Resample   
 )
-from nidl.volume.transforms.preprocessing import (
+from nidl.transforms.volume.preprocessing import (
     Letterbox, InverseLetterbox
 )
 

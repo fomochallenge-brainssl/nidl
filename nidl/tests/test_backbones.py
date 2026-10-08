@@ -10,7 +10,7 @@ import unittest
 
 import torch
 
-from nidl.volume.backbones import (
+from nidl.backbones import (
     AlexNet,
     densenet121,
     resnet18,
@@ -21,7 +21,7 @@ from nidl.volume.backbones import (
     VisionTransformer3DMoE
 )
 
-from nidl.volume.backbones.vit3d_moe import (
+from nidl.backbones.vit3d_moe import (
     MoEParams
 )
 

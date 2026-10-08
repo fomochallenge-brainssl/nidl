@@ -27,7 +27,7 @@ from nidl.estimators.ssl.utils.momentum import (
 )
 from nidl.estimators.ssl.utils.optimizer import configure_ssl_optimizers
 from nidl.utils.data_parsing import parse_x_or_xy_batch
-from nidl.volume.backbones.utils.pos_embed import (
+from nidl.backbones.utils.pos_embed import (
     build_2d_sincos_posemb,
     build_3d_sincos_posemb,
 )

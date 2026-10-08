@@ -7,7 +7,7 @@ from typing import Union
 
 import torch
 
-from .....transforms import TypeTransformInput, VolumeTransform
+from ....transforms import TypeTransformInput, VolumeTransform
 
 
 class RandomBiasFieldFast(VolumeTransform):

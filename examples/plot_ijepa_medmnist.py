@@ -64,9 +64,9 @@ from torchvision.transforms import Compose
 
 from nidl.estimators.ssl import IJEPA
 from nidl.utils.weights import Weights
-from nidl.volume.backbones import VisionTransformer3D
-from nidl.volume.transforms.augmentation import RandomResizedCrop
-from nidl.volume.transforms.preprocessing import ZNormalization
+from nidl.backbones import VisionTransformer3D
+from nidl.transforms.volume.augmentation import RandomResizedCrop
+from nidl.transforms.volume.preprocessing import ZNormalization
 
 # %%
 # We define some global parameters that will be used throughout the example.
