@@ -191,12 +191,12 @@ class Transform(ABC):
 
     @staticmethod
     def _parse_range(interval, check_min=None, check_max=None):
-        """Checks if the input interval is correct.
+        r"""Checks if the input interval is correct.
 
         In details, it checks whether it contains two values :math:`(l, u)`
         such that :math:`l` and :math:`u` are scalar (int or float) and
-        :math:`l \\le u`. Optionally, it also checks that
-        :math:`l \\ge \\text{check_min}` and :math:`u \\le \\text{check_max}`.
+        :math:`l \le u`. Optionally, it also checks that
+        :math:`l \ge \text{check_min}` and :math:`u \le \text{check_max}`.
 
         Parameters
         ----------
@@ -454,11 +454,11 @@ class DinoTransform(Transform):
         Parameters
         -----------
         global_crops_transform : Callable
-            Function that defines the transform used to compute 
+            Function that defines the transform used to compute
             ALL global crops from the input volume
         
         local_crops_transform : Callable
-            Function that defines the transform used to compute 
+            Function that defines the transform used to compute
             ALL local crops from the input volume
         
         n_global_crops : int
@@ -473,7 +473,7 @@ class DinoTransform(Transform):
            Transformers" ICCV, 2021. https://arxiv.org/abs/2104.14294
     """
     def __init__(
-        self, 
+        self,
         global_crops_transform: Callable,
         local_crops_transform: Callable,
         n_global_crops: Optional[int] = None,
@@ -482,20 +482,20 @@ class DinoTransform(Transform):
         # Determinsitic transform
         super().__init__(1.0)
 
-        self._parse_crops_count(n_global_crops, "n_global_crops")
-        self._parse_crops_count(n_local_crops, "n_local_crops")
-
         self.global_crops_transforms = []
         self.local_crops_transforms = []
-        self.n_global_crops = n_global_crops
-        self.n_local_crops = n_local_crops
+        self.n_global_crops = self._parse_crops_count(
+            n_global_crops, "n_global_crops")
+        self.n_local_crops = self._parse_crops_count(
+            n_local_crops, "n_local_crops")
 
         if callable(global_crops_transform):
             for _ in range(self.n_global_crops):
                 self.global_crops_transforms.append(global_crops_transform)
         else:
             raise TypeError(
-                f"Unexpected global_crops_transform, got {type(global_crops_transform)} but expected a callable"
+                "Unexpected global_crops_transform, got "
+                f"{type(global_crops_transform)} but expected a callable"
             )
     
         if callable(local_crops_transform):
@@ -503,7 +503,8 @@ class DinoTransform(Transform):
                 self.local_crops_transforms.append(local_crops_transform)
         else:
             raise TypeError(
-                f"Unexpected n_local_crops, got {type(local_crops_transform)} but expected a callable"
+                "Unexpected n_local_crops, got "
+                f"{type(local_crops_transform)} but expected a callable"
             )
     
 
@@ -525,14 +526,15 @@ class DinoTransform(Transform):
             raise ValueError(f"{crops_type} must be positive")
         return crops_count
 
-    def apply_transform(self, data_parsed, **kwargs) -> list[TypeTransformInput]:
+    def apply_transform(
+            self, data_parsed, **kwargs) -> list[TypeTransformInput]:
         global_crops = [
-            global_transform(data_parsed, **kwargs) 
+            global_transform(data_parsed, **kwargs)
             for global_transform in self.global_crops_transforms
         ]
 
         local_crops = [
-            local_transform(data_parsed, **kwargs) 
+            local_transform(data_parsed, **kwargs)
             for local_transform in self.local_crops_transforms
         ]
 

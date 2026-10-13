@@ -97,7 +97,7 @@ class Resample(VolumeTransform):
     >>> import torch
     >>> image_torch = torch.from_numpy(image)
     >>> resampled_torch = resampler(image_torch, affine)
-    """
+    """  # noqa: D301
 
     def __init__(
         self,
@@ -113,7 +113,7 @@ class Resample(VolumeTransform):
     def apply_transform(
         self, data: TypeTransformInput, affine: Optional[np.ndarray] = None
     ) -> TypeTransformInput:
-        """Resample the input data.
+        r"""Resample the input data.
 
         Parameters
         ----------
@@ -132,8 +132,8 @@ class Resample(VolumeTransform):
         data: np.ndarray or torch.Tensor
             Resampled data with shape :math:`(H', W', D')`  or
             :math:`(C, H', W', D')` and same type as input with
-            :math:`H' = \\frac{s_h'}{s_h} H, W' = \\frac{s_w'}{s_w} W,
-            D' = \\frac{s_d'}{s_d} D` where :math:`(s_h', s_w', s_d')`
+            :math:`H' = \frac{s_h'}{s_h} H, W' = \frac{s_w'}{s_w} W,
+            D' = \frac{s_d'}{s_d} D` where :math:`(s_h', s_w', s_d')`
             and :math:`(s_h, s_w, s_d)` are input and output spacing (in mm)
             respectively.
 

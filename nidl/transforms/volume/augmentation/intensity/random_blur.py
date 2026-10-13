@@ -37,7 +37,7 @@ class RandomGaussianBlur(VolumeTransform):
         :math:`\\sigma_i \\sim \\mathcal{U}(a_i, b_i)` for :math:`i=1,2,3`.
     kwargs: dict
            Keyword arguments.
-    """
+    """  # noqa: D301
 
     def __init__(
         self,

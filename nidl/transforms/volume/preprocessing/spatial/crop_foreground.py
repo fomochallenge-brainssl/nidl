@@ -203,7 +203,7 @@ class CropForeground(VolumeTransform):
             for dim, (start, end) in enumerate(zip(box_start, box_end))
         )
         if has_channel:
-            crop_slices = (slice(None),) + crop_slices
+            crop_slices = (slice(None), *crop_slices)
         cropped = data[crop_slices]
 
         pad_before = [max(-s, 0) for s in box_start]
@@ -213,7 +213,7 @@ class CropForeground(VolumeTransform):
         if any(pad_before) or any(pad_after):
             pad_widths = list(zip(pad_before, pad_after))
             if has_channel:
-                pad_widths = [(0, 0)] + pad_widths
+                pad_widths = [(0, 0), *pad_widths]
             kwargs_pad = {}
             if self.padding_mode == "constant":
                 kwargs_pad["constant_values"] = self.constant_values

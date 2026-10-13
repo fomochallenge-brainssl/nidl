@@ -8,5 +8,10 @@
 
 from .intensity import RobustRescaling, ZNormalization
 from .spatial import (
-    CropForeground, CropOrPad, Resample, Resize, InverseLetterbox, Letterbox
+    CropForeground,
+    CropOrPad,
+    InverseLetterbox,
+    Letterbox,
+    Resample,
+    Resize,
 )

@@ -11,28 +11,28 @@ from ....transforms import TypeTransformInput, VolumeTransform
 
 
 class RandomContrastAdjust(VolumeTransform):
-    """Randomly adjust the brightness and contrast of a 3d volume,
+    r"""Randomly adjust the brightness and contrast of a 3d volume,
     using the linear transformation:
     .. math::
 
-        p_\\text{out} = \\alpha \\cdot p_\\text{in} + \\beta
+        p_\text{out} = \alpha \cdot p_\text{in} + \beta
 
-    where :math:`p_\\text{in}` (resp. :math:`p_\\text{out}`) is the input
-    (resp. output) voxel intensity, :math:`\\alpha` is the contrast factor
-    (gain) and :math:`\\beta` is the brightness factor (bias).
+    where :math:`p_\text{in}` (resp. :math:`p_\text{out}`) is the input
+    (resp. output) voxel intensity, :math:`\alpha` is the contrast factor
+    (gain) and :math:`\beta` is the brightness factor (bias).
 
     Parameters
     ----------
     contrast_factor: (float, float), default=(0.75, 1.25)
-        Contrast factor (gain) :math:`\\alpha`, sampled
-        :math:`\\alpha \\sim \\mathcal{U}(a, b)`. A factor of 1.0 leaves the
+        Contrast factor (gain) :math:`\alpha`, sampled
+        :math:`\alpha \sim \mathcal{U}(a, b)`. A factor of 1.0 leaves the
         contrast unchanged, a factor in :math:`[0, 1)` reduces it and a factor
-        greater than 1.0 increases it. Both bounds must be :math:`\\ge 0`
+        greater than 1.0 increases it. Both bounds must be :math:`\ge 0`
         (a negative gain would invert intensities, not adjust contrast).
     brightness_factor: float or (float, float), default=0.0
-        Brightness factor (bias) :math:`\\beta`. If two values
+        Brightness factor (bias) :math:`\beta`. If two values
         :math:`(a, b)` are given, then
-        :math:`\\beta \\sim \\mathcal{U}(a, b)`. If a single number ``b`` is
+        :math:`\beta \sim \mathcal{U}(a, b)`. If a single number ``b`` is
         given, the symmetric range ``(-b, b)`` is used. A factor of 0.0 leaves
         the brightness unchanged.
     output_range: (float, float) or None, default=None

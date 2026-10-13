@@ -998,7 +998,7 @@ class TestDinoTransform(unittest.TestCase):
 
     def test_invalid_negative_local_crop_count(self):
         with self.assertRaises(ValueError):
-            _ = DinoTransform(Identity, Identity(), 2, -1)
+            _ = DinoTransform(Identity(), Identity(), 2, -1)
     
     def test_global_transform_callable(self):
         with self.assertRaises(TypeError):
@@ -1013,7 +1013,7 @@ class TestDinoTransform(unittest.TestCase):
         dino_transform = DinoTransform(lambda x: x * 2, lambda x: x + 3, self.global_crops_count, self.local_crops_count)
         output = dino_transform(self.input)
         self.assertEqual(len(output), self.global_crops_count + self.local_crops_count)
-        np.testing.assert_array_equal(output, [self.input * 2 for _ in range(self.global_crops_count)] + [self.input * 3 for _ in range(self.local_crops_count)])
+        np.testing.assert_array_equal(output, [self.input * 2 for _ in range(self.global_crops_count)] + [self.input + 3 for _ in range(self.local_crops_count)])
     
 class TestLetterbox(unittest.TestCase):
     # Set up unit test context

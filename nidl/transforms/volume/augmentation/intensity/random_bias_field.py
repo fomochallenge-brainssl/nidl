@@ -48,7 +48,7 @@ class RandomBiasField(VolumeTransform):
            correction of MR images of the brain." IEEE Transactions on
            Medical Imaging, 18(10), 885-896.
         
-    """
+    """  # noqa: D301
 
     def __init__(
         self,

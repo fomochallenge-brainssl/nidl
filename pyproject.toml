@@ -114,6 +114,8 @@ ignore = [
     "RET504",  # Unnecessary assignment before `return` statement
     "EXE002",  # File is executable but does not contain a shebang
     "FURB140", # Use itertools.starmap instead of a generator inside all
+    "NPY002",  # Legacy np.random: transforms must follow the global seed
+               # (pl.seed_everything / DataLoader worker seeding)
 ]
 
 [tool.ruff]

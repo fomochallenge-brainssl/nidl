@@ -110,7 +110,7 @@ class BaseDataset(Dataset):
         if withdraw_subjects is not None:
             self.split_df = self.split_df[
                 ~self.split_df["participant_id"].isin(withdraw_subjects)]
-        self._df = pd.merge(self.split_df, self.info_df, on="participant_id")
+        self._df = self.split_df.merge(self.info_df, on="participant_id")
 
         # Keep only useful information / sanitize
         if targets is not None:
@@ -120,7 +120,7 @@ class BaseDataset(Dataset):
                         f"A '{key}' column is mandatory in the participant "
                         "file.")
         self._df = self._df[["participant_id"] + (targets or [])]
-        _missing_data = self._df[self._df.isnull().any(axis=1)]
+        _missing_data = self._df[self._df.isna().any(axis=1)]
         if len(_missing_data) > 0:
             warnings.warn(f"Missing data in {split}!", UserWarning,
                           stacklevel=2)
@@ -277,9 +277,10 @@ class BaseImageDataset(BaseDataset):
                 for path in glob.glob(_regex)}
             # Added sanitization of partecipants file
             self._data[f"{self.channels[idx]}"] = [
-                _files.get(self.sanitize_subject(subject)) for subject in self._df["participant_id"]]
+                _files.get(self.sanitize_subject(subject))
+                for subject in self._df["participant_id"]]
         self._data = pd.DataFrame.from_dict(self._data)
-        _missing_data = self._data[self._data.isnull().any(axis=1)]
+        _missing_data = self._data[self._data.isna().any(axis=1)]
         if len(_missing_data) > 0:
             warnings.warn(f"Missing file data in {split}!", UserWarning,
                           stacklevel=2)

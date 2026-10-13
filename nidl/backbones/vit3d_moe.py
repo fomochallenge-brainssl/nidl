@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import torch
-import torch.nn.functional as F  # noqa: N812
+import torch.nn.functional as F  # ruff: ignore[lowercase-imported-as-non-lowercase]
 from torch import distributed as dist
 from torch import nn
 
@@ -526,10 +526,12 @@ class Block(nn.Module):
 
 class VisionTransformer3DMoE(nn.Module):
     """
-        3D ViT backbone with an optional sparse MoE mixed in at configurable layers.
+        3D ViT backbone with an optional sparse MoE mixed in at configurable
+        layers.
         
-        num_prefix_tokens and forward_features have been added for compatibility
-        with code developed for a standard vit backbone with no MoE
+        num_prefix_tokens and forward_features have been added for
+        compatibility with code developed for a standard vit backbone with
+        no MoE
         (as in nidl/backbones/vit3d.py)
     """
 
@@ -638,19 +640,20 @@ class VisionTransformer3DMoE(nn.Module):
                 patch indices are kept; output batch is multiplied by
                 len(masks) (one block per mask, concatenated along batch).
 
-            Returns (tokens, moe_scores) where `tokens` is (B[*len(masks)], K, E)
-            and `moe_scores` is a list (one entry per block) of router scores,
-            or an empty list if `use_moe=False`.
+            Returns (tokens, moe_scores) where `tokens` is
+            (B[*len(masks)], K, E) and `moe_scores` is a list (one entry per
+            block) of router scores, or an empty list if `use_moe=False`.
 
-            Given that the backbone has been developed for NeuroJEPA, it doesn't currently
-            feature a forward_head method, making forward and forward_features
+            Given that the backbone has been developed for NeuroJEPA, it
+            doesn't currently feature a forward_head method, making forward
+            and forward_features
             functionally equivalent.
         """
         return self.forward_features(x, masks)
 
     def forward_features(
-        self, 
-        x: torch.Tensor, 
+        self,
+        x: torch.Tensor,
         masks: Optional[list[torch.Tensor]] = None
     ):
         """
@@ -659,9 +662,9 @@ class VisionTransformer3DMoE(nn.Module):
                 patch indices are kept; output batch is multiplied by
                 len(masks) (one block per mask, concatenated along batch).
 
-            Returns (tokens, moe_scores) where `tokens` is (B[*len(masks)], K, E)
-            and `moe_scores` is a list (one entry per block) of router scores,
-            or an empty list if `use_moe=False`.
+            Returns (tokens, moe_scores) where `tokens` is
+            (B[*len(masks)], K, E) and `moe_scores` is a list (one entry per
+            block) of router scores, or an empty list if `use_moe=False`.
         """
         _, _, H, W, D = x.shape
         H_p, W_p, D_p = (

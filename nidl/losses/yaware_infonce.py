@@ -98,7 +98,7 @@ class KernelMetric(BaseEstimator):
     .. [4] Silverman, B. W. (1986). "Density Estimation for Statistics and Data
            Analysis". Monographs on Statistics and Applied Probability.
 
-    """
+    """  # noqa: D301
 
     def __init__(
         self,
@@ -380,7 +380,7 @@ class YAwareInfoNCE(nn.Module):
            meta-data for 3D MRI classification." MICCAI, 2021.
            https://arxiv.org/abs/2106.08808
 
-    """
+    """  # noqa: D301
 
     def __init__(
         self,

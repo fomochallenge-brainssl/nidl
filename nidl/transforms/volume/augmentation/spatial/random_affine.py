@@ -79,7 +79,7 @@ class RandomAffine(VolumeTransform):
     >>> volume = torch.randn(1, 64, 64, 64)  # shape: (C, H, W, D)
     >>> transform = RandomAffine(scales=(0.9, 1.1), degrees=(-10, 10))
     >>> transformed = transform(volume)  # shape (1, 64, 64, 64)
-    """
+    """  # noqa: D301
 
     def __init__(
         self,

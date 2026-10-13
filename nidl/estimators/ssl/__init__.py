@@ -13,6 +13,6 @@ from .dcl import DCL
 from .dino import DINO
 from .ijepa import IJEPA
 from .multi_neurojepa import MultiNeuroJEPA
+from .neurojepa import NeuroJEPA
 from .simclr import SimCLR
 from .yaware import YAwareContrastiveLearning
-from .neurojepa import NeuroJEPA

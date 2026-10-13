@@ -18,7 +18,7 @@ from ....transforms import TypeTransformInput, VolumeTransform
 
 
 class RandomNoiseFast(VolumeTransform):
-    """Add Gaussian noise to input data with random parameters.
+    r"""Add Gaussian noise to input data with random parameters.
 
     The noise is sampled from a Gaussian distribution with randomly selected
     mean and standard deviation. With ``noise_downsampling_factor=1``, one
@@ -33,13 +33,13 @@ class RandomNoiseFast(VolumeTransform):
     Parameters
     ----------
     mean: float or (float, float), default=0.0
-        Mean :math:`\\mu` of the Gaussian distribution. If two values
-        :math:`(a, b)` are given, then :math:`\\mu \\sim \\mathcal{U}(a, b)`.
+        Mean :math:`\mu` of the Gaussian distribution. If two values
+        :math:`(a, b)` are given, then :math:`\mu \sim \mathcal{U}(a, b)`.
 
     std: (float, float), default=(0.1, 1.0)
         Range of the standard deviation :math:`(a, b)` of the Gaussian
         distribution. The standard deviation is sampled as
-        :math:`\\sigma \\sim \\mathcal{U}(a, b)`.
+        :math:`\sigma \sim \mathcal{U}(a, b)`.
 
     noise_downsampling_factor: int, default=2
         Factor used to reduce the spatial resolution of the generated noise.

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 from typing import Union
 
 from ....transforms import VolumeTransform
-from .resize import Resize
 from .crop_or_pad import CropOrPad
+from .resize import Resize
 
 
 class InverseLetterbox(VolumeTransform):
@@ -34,14 +36,15 @@ class InverseLetterbox(VolumeTransform):
         [1] Redmon, J., et al., "You Only Look Once: ..." CVPR, 2016. https://arxiv.org/abs/1506.02640
     """
     def __init__(
-        self, 
+        self,
         standard_shape: Union[int, tuple[int, int, int]],
         interpolation: str = "linear"
     ):
         super().__init__()
 
         self.standard_shape = self._parse_shape(standard_shape, length=3)
-        if self.standard_shape[0] == self.standard_shape[1] and self.standard_shape[1] == self.standard_shape[2]:
+        if (self.standard_shape[0] == self.standard_shape[1]
+                and self.standard_shape[1] == self.standard_shape[2]):
             self.interpolation = interpolation
         else:
             raise ValueError("standard_shape must be isotropic\n")
@@ -49,7 +52,8 @@ class InverseLetterbox(VolumeTransform):
     def compute_intermediate_shape(self, original_shape):
         longest_dim = max(original_shape)
         scale_factor = self.standard_shape[0] / longest_dim
-        resized_shape = tuple(int(round(dim * scale_factor)) for dim in original_shape)
+        resized_shape = tuple(
+            round(dim * scale_factor) for dim in original_shape)
 
         return resized_shape
     

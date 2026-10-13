@@ -19,6 +19,10 @@ from timm.models.vision_transformer import Block
 from torch import nn
 from torch.optim import Optimizer
 
+from nidl.backbones.utils.pos_embed import (
+    build_2d_sincos_posemb,
+    build_3d_sincos_posemb,
+)
 from nidl.estimators.base import BaseEstimator, TransformerMixin
 from nidl.estimators.ssl.utils.encoder import build_encoder
 from nidl.estimators.ssl.utils.momentum import (
@@ -27,10 +31,6 @@ from nidl.estimators.ssl.utils.momentum import (
 )
 from nidl.estimators.ssl.utils.optimizer import configure_ssl_optimizers
 from nidl.utils.data_parsing import parse_x_or_xy_batch
-from nidl.backbones.utils.pos_embed import (
-    build_2d_sincos_posemb,
-    build_3d_sincos_posemb,
-)
 
 
 class IJEPA(TransformerMixin, BaseEstimator):
@@ -302,7 +302,9 @@ class IJEPA(TransformerMixin, BaseEstimator):
         """
 
         outputs = self._shared_step(batch)
-        self.log("loss/train", outputs["loss"], prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
+        self.log("loss/train", outputs["loss"], prog_bar=True,
+                 sync_dist=True, on_step=self.log_on_step,
+                 on_epoch=self.log_on_epoch)
         # Returns everything needed for further logging/metrics computation
         return outputs
 
@@ -336,7 +338,8 @@ class IJEPA(TransformerMixin, BaseEstimator):
         # update target backbone
         self.momentum_updater.update(self.context_encoder, self.target_encoder)
         # log lambda momentum
-        self.log("lambda", self.momentum_updater.cur_lambda, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
+        self.log("lambda", self.momentum_updater.cur_lambda,
+                 on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         # update lambda
         self.momentum_updater.update_lambda(
             cur_step=self.trainer.global_step,
@@ -373,7 +376,9 @@ class IJEPA(TransformerMixin, BaseEstimator):
         """
 
         outputs = self._shared_step(batch)
-        self.log("loss/val", outputs["loss"], prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
+        self.log("loss/val", outputs["loss"], prog_bar=True,
+                 sync_dist=True, on_step=self.log_on_step,
+                 on_epoch=self.log_on_epoch)
         # Returns everything needed for further logging/metrics computation
         return outputs
 

@@ -71,7 +71,7 @@ class Resize(Resample):
     ----------
     .. [1] Meijering et al. (1999), "Quantitative Comparison of
            Sinc-Approximating Kernels for Medical Image Interpolation."
-    """
+    """  # noqa: D301
 
     def __init__(
         self,

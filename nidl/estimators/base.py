@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Any, Callable, Optional, Union
 
 import pytorch_lightning as pl
@@ -27,8 +28,6 @@ from torch.utils import data
 from torchmetrics import MetricCollection
 
 from ..utils.validation import _estimator_is, available_if, check_is_fitted
-
-from pathlib import Path
 
 
 class BaseEstimator(pl.LightningModule):
@@ -241,7 +240,8 @@ class BaseEstimator(pl.LightningModule):
             trainer.logger._default_hp_metric = None
         pl.seed_everything(self.hparams.random_state)
         # Added restore from full checkpoint
-        trainer.fit(self, train_dataloader, val_dataloader, ckpt_path=ckpt_path, weights_only=False)
+        trainer.fit(self, train_dataloader, val_dataloader,
+                    ckpt_path=ckpt_path, weights_only=False)
         self.fitted_ = True
         return self
 

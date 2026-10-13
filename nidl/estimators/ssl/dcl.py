@@ -222,7 +222,9 @@ class DCL(TransformerMixin, BaseEstimator):
                 - "y": eventual targets (returned as is).
         """
         outputs = self._shared_step(batch, is_train=True)
-        self.log("loss/train", outputs["loss"], prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
+        self.log("loss/train", outputs["loss"], prog_bar=True,
+                 sync_dist=True, on_step=self.log_on_step,
+                 on_epoch=self.log_on_epoch)
         # Returns everything needed for further logging/metrics computation
         return outputs
 
@@ -254,7 +256,9 @@ class DCL(TransformerMixin, BaseEstimator):
                 - "y": eventual targets (returned as is).
         """
         outputs = self._shared_step(batch, is_train=False)
-        self.log("loss/val", outputs["loss"], prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
+        self.log("loss/val", outputs["loss"], prog_bar=True,
+                 sync_dist=True, on_step=self.log_on_step,
+                 on_epoch=self.log_on_epoch)
         # Returns everything needed for further logging/metrics computation
         return outputs
 

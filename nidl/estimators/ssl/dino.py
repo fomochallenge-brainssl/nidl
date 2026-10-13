@@ -293,7 +293,9 @@ class DINO(TransformerMixin, BaseEstimator):
         z_teacher = self.forward_teacher(X)
 
         loss = self.loss(z_teacher, z_student, epoch=self.current_epoch)
-        self.log("loss/train", loss, prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
+        self.log("loss/train", loss, prog_bar=True,
+                 sync_dist=True, on_step=self.log_on_step,
+                 on_epoch=self.log_on_epoch)
         outputs = {
             "loss": loss,
             "z_student": z_student.detach(),
@@ -345,7 +347,8 @@ class DINO(TransformerMixin, BaseEstimator):
         self.momentum_updater.update(self.student, self.teacher)
         self.momentum_updater.update(self.student_head, self.teacher_head)
         # log lambda momentum
-        self.log("lambda", self.momentum_updater.cur_lambda, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
+        self.log("lambda", self.momentum_updater.cur_lambda,
+                 on_step=self.log_on_step, on_epoch=self.log_on_epoch)
         # update lambda
         self.momentum_updater.update_lambda(
             cur_step=self.trainer.global_step,
@@ -407,7 +410,9 @@ class DINO(TransformerMixin, BaseEstimator):
         z_teacher = self.forward_teacher(X)
 
         val_loss = self.loss(z_teacher, z_student, epoch=self.current_epoch)
-        self.log("loss/val", val_loss, prog_bar=True, sync_dist=True, on_step=self.log_on_step, on_epoch=self.log_on_epoch)
+        self.log("loss/val", val_loss, prog_bar=True,
+                 sync_dist=True, on_step=self.log_on_step,
+                 on_epoch=self.log_on_epoch)
         outputs = {
             "loss": val_loss,
             "z_student": z_student.detach(),

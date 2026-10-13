@@ -107,7 +107,7 @@ class _DenseLayer(nn.Sequential):
                  memory_efficient=False):
         super().__init__()
         self.add_module('norm1', nn.BatchNorm3d(num_input_features))
-        self.add_module('relu1', nn.ReLU(inplace=True)),
+        self.add_module('relu1', nn.ReLU(inplace=True))
         self.add_module('conv1', nn.Conv3d(num_input_features, bn_size *
                                            growth_rate, kernel_size=1,
                                            stride=1, bias=False))
